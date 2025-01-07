@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:haphuocloc_3489_tuan7/screens/login_screen.dart';
+import 'package:haphuocloc_3489_tuan7/screens/Auth/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import LoginScreen
 
 class AdminScreen extends StatelessWidget {
