@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../config/config_url.dart';
 import '../models/postFacebook.dart';
 import 'add_post_screen.dart';
 import 'edit_post.dart';
@@ -18,7 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<postFacebook> posts = [];
   bool isLoading = true;
   final TextEditingController _searchController = TextEditingController();
-  final String apiUrl = 'https://foundgreenpen14.conveyor.cloud/api/PostApi'; // URL API của bạn
+  final String apiUrl = '${Config_URL.baseUrl}PostApi'; // URL API của bạn
 
   @override
   void initState() {
@@ -82,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Cập nhật bài viết
   Future<void> _updatePost(postFacebook post) async {
-    final url = 'https://goodshinytrail60.conveyor.cloud/api/PostApi/${post.id}';
+    final url = '${Config_URL.baseUrl}PostApi/${post.id}';
 
     final response = await http.put(
       Uri.parse(url),

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../config/config_url.dart';
 import '../models/productPost.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AddProductScreen extends StatelessWidget {
-  final String baseUrl = 'https://foundgreenpen14.conveyor.cloud/api/ProductApi';
+  final String baseUrl = '${Config_URL.baseUrl}ProductApi';
 
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
