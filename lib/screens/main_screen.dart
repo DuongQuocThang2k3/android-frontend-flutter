@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haphuocloc_3489_tuan7/screens/video_screen.dart';
-import 'package:haphuocloc_3489_tuan7/screens/logout_screen.dart'; // Import LogoutScreen
+import 'package:haphuocloc_3489_tuan7/screens/Auth/logout_screen.dart'; // Import LogoutScreen
 import 'home_screen.dart';
 import 'account_screen.dart';
 import 'market_screen.dart';

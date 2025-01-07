@@ -220,9 +220,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
                 Image.asset(
-                  'assets/pet.png', // Đường dẫn đến hình ảnh thú cưng
-                  height: 350,
-                  width: 350,
+                  'assets/nen-pet.png', // Đường dẫn đến hình ảnh thú cưng
+                  height: 250,
+                  width: 250,
                   fit: BoxFit.cover,
                 ),
               ],
