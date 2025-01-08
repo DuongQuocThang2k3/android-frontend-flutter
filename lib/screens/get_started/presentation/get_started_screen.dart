@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:the_cherry_pet_shop/screens/Auth/login_screen.dart';
 
 import '../../../core/route/app_route_name.dart';
 import '../../../core/theme/app_color.dart';
-
 
 class GetStartedScreen extends StatelessWidget {
   const GetStartedScreen({super.key});
@@ -20,14 +20,19 @@ class GetStartedScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Image(
-              image: AssetImage(
-                "assets/logo_petshop_cherry.png",
+            // Giảm kích thước logo xuống 50%
+            const SizedBox(
+              width: 130, // Chiều rộng logo (50% của kích thước gốc)
+              height: 115, // Chiều cao logo (50% của kích thước gốc)
+              child: Image(
+                image: AssetImage(
+                  "assets/logo_petshop_cherry.png",
+                ),
               ),
             ),
             const SizedBox(height: 16),
             Text(
-              "Find needs of your\nbeloved animal here",
+              "Bạn cần thú cưng như thế nào? Hãy đến với chúng tôi ",
               style: Theme.of(context).textTheme.headlineMedium,
               textAlign: TextAlign.center,
             ),
@@ -41,7 +46,8 @@ class GetStartedScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              "Get attractive promos here, immediately\njust register your account to fulfill the\nbest needs for your beloved pet",
+              "Nhận ngay các chương trình khuyến mãi hấp dẫn tại đây, "
+                  "chỉ cần đăng ký tài khoản ngay để đáp ứng nhu cầu tốt nhất cho thú cưng yêu quý của bạn",
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
@@ -61,7 +67,7 @@ class GetStartedScreen extends StatelessWidget {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  "Get Started",
+                  "Bắt đầu tìm hiểu ",
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -74,12 +80,23 @@ class GetStartedScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Already have an Account ? ",
+                  "Hãy đăng nhập ngay! ",
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                TextButton(onPressed: () {}, child: const Text("Login"))
+                TextButton(
+                  onPressed: () {
+                    // Điều hướng đến trang login
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text("Login"),
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),

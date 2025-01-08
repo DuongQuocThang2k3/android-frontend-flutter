@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:the_cherry_pet_shop/core/route/app_route_name.dart';
+import 'package:the_cherry_pet_shop/core/theme/app_color.dart';
 import 'package:the_cherry_pet_shop/screens/Auth/registration_screen.dart';
 import 'package:the_cherry_pet_shop/screens/admin_screen.dart';
 import 'package:the_cherry_pet_shop/screens/main_screen.dart';
-import 'package:the_cherry_pet_shop/utils/auth.dart'; // Import Auth
+import 'package:the_cherry_pet_shop/utils/auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,9 +32,8 @@ class _LoginScreenState extends State<LoginScreen> {
     String? token = prefs.getString('jwt_token');
 
     if (token != null) {
-      // Nếu token tồn tại, giải mã và chuyển hướng
       Map<String, dynamic> decodedToken = Auth.decodeToken(token);
-      String role = decodedToken['role'] ?? 'User'; // Mặc định là 'User' nếu không có vai trò
+      String role = decodedToken['role'] ?? 'User';
 
       if (role == 'Admin') {
         Navigator.pushReplacement(
@@ -62,7 +63,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    // Gọi Auth.login để xử lý đăng nhập
     Map<String, dynamic> result = await Auth.login(
       _usernameController.text,
       _passwordController.text,
@@ -71,29 +71,24 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (result['success'] == true) {
-      // Lưu token vào SharedPreferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('jwt_token', result['token']); // Lưu token
+      await prefs.setString('jwt_token', result['token']);
 
-      // Giải mã token và chuyển hướng
       Map<String, dynamic> decodedToken = Auth.decodeToken(result['token']);
-      String role = decodedToken['role'] ?? 'User'; // Mặc định là 'User' nếu không có vai trò
+      String role = decodedToken['role'] ?? 'User';
 
       if (role == 'Admin') {
-        // Nếu là Admin, chuyển đến trang Admin
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const AdminScreen()),
         );
       } else {
-        // Nếu là User, chuyển đến trang MainScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       }
     } else {
-      // Hiển thị thông báo lỗi nếu đăng nhập không thành công
       String errorMessage = result['message'] ?? 'Tên đăng nhập hoặc mật khẩu không đúng';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -220,10 +215,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
                 Image.asset(
-                  'assets/nen-pet.png', // Đường dẫn đến hình ảnh thú cưng
-                  height: 250,
-                  width: 250,
+                  'assets/nen-pet.png',
+                  height: 230,
+                  width: 230,
                   fit: BoxFit.cover,
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRouteName.home,
+                    );
+                  },
+                  child: const Text(
+                    "Quay về trang chủ",
+                    style: TextStyle(
+                      color: Colors.purple,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),

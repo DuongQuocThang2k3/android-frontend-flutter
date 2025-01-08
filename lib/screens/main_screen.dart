@@ -18,7 +18,7 @@ class _MainScreenState extends State<MainScreen> {
   // Simplified screens list without video assets
   final List<Widget> _screens = [
     const HomeScreen(),
-    const VideoListScreen(), // Using YouTube videos instead of local assets
+    const VideoListScreen(),
     const AccountScreen(),
     const MarketScreen(),
   ];
@@ -31,7 +31,12 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Facebook Fake'),
+        title: const Text(
+          'The Cherry PetShop',
+          style: TextStyle(
+            color: Colors.white, // Đặt màu chữ là trắng
+          ),
+        ),
         centerTitle: true,
         backgroundColor: Colors.blueAccent,
         actions: [
@@ -47,7 +52,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
-      body: IndexedStack(  // Using IndexedStack to preserve state
+      body: IndexedStack( // Using IndexedStack to preserve state
         index: _currentIndex,
         children: _screens,
       ),

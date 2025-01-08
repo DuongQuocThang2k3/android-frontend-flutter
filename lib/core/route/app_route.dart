@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:the_cherry_pet_shop/screens/home_screen.dart';
+import 'package:the_cherry_pet_shop/screens/main_screen.dart';
 import '../../screens/get_started/presentation/get_started_screen.dart';
 import '/core/route/app_route_name.dart';
 
@@ -15,7 +15,7 @@ class AppRoute {
       case AppRouteName.home:
         return PageRouteBuilder(
           settings: settings,
-          pageBuilder: (_, __, ___) => const HomeScreen(),
+          pageBuilder: (_, __, ___) => const MainScreen(),
           transitionDuration: const Duration(milliseconds: 400),
           transitionsBuilder: (_, animation, __, child) {
             return SlideTransition(
