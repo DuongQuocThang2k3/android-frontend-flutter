@@ -4,7 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:the_cherry_pet_shop/screens/widget/carousel_widget.dart';
 import 'package:the_cherry_pet_shop/screens/widget/shop_widget.dart';
 import '../core/theme/app_color.dart';
+import 'widget/category_widget.dart';
 import 'widget/pets_widget.dart';
+import 'widget/popular_product_widget.dart';
 import 'widget/promotion_widget.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -56,6 +58,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SliverToBoxAdapter(
             child: PetsWidget(),
+          ),
+          const SliverToBoxAdapter(
+            child: CategoryWidget(),
+          ),
+          const SliverToBoxAdapter(
+            child: PopularProductWidget(),
           ),
           const SliverToBoxAdapter(
             child: ShopWidget(),

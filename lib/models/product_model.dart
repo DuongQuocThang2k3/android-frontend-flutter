@@ -16,31 +16,31 @@ class ProductModel {
 
 const products = [
   ProductModel(
-    image: "assets/img_cat_dog_bed.png",
+    image: "assets/img_cat_dog_bed.jpg",
     brand: "Frisco",
-    name: "Rectangular Bolster Cat & Dog Bed, Brown, Large",
+    name: "Giường vuông cho mèo & chó, màu nâu, cỡ lớn",
     rating: "4.5",
-    price: "\$44.09",
+    price: "45.000 VND",
   ),
   ProductModel(
-    image: "assets/img_cat_condo.png",
+    image: "assets/img_cat_condo.jpg",
     brand: "Frisco",
-    name: "52-in Faux Fur Cat Tree & Condo, Brown",
+    name: "Cây và nhà cho mèo, cao 52 inch, màu nâu",
     rating: "4.5",
-    price: "\$50.09",
+    price: "125.000 VND",
   ),
   ProductModel(
-    image: "assets/img_dog_toy.png",
+    image: "assets/img_dog_toy.jpg",
     brand: "Frisco",
-    name: "St. Patrick's Shamrocks Plush Squeaky Dog Toy, 3 count",
+    name: "Đồ chơi hình shamrock phát tiếng kêu, 3 món",
     rating: "4.5",
-    price: "\$14.09",
+    price: "70.000 VND",
   ),
   ProductModel(
-    image: "assets/img_dog_bowl.png",
+    image: "assets/img_dog_bowl.jpg",
     brand: "Frisco",
-    name: "Travel Collapsible Silicone Dog & Cat Bowl, Gray, 3 Cup",
+    name: "Bát silicone gấp gọn cho chó & mèo, màu xám, 3 cốc",
     rating: "4.5",
-    price: "\$9s.09",
-  ),
+    price: "37.000 VND",
+  )
 ];
