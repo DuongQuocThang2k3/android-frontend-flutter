@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:haphuocloc_3489_tuan7/utils/auth.dart';
+import 'package:the_cherry_pet_shop/utils/auth.dart';
+
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});

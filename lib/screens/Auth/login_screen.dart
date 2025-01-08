@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:haphuocloc_3489_tuan7/screens/admin_screen.dart';
-import 'package:haphuocloc_3489_tuan7/screens/main_screen.dart';
-import 'package:haphuocloc_3489_tuan7/screens/Auth/registration_screen.dart';
-import 'package:haphuocloc_3489_tuan7/utils/auth.dart'; // Import Auth
+import 'package:the_cherry_pet_shop/screens/Auth/registration_screen.dart';
+import 'package:the_cherry_pet_shop/screens/admin_screen.dart';
+import 'package:the_cherry_pet_shop/screens/main_screen.dart';
+import 'package:the_cherry_pet_shop/utils/auth.dart'; // Import Auth
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
