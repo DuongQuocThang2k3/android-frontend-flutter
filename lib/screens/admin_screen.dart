@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:haphuocloc_3489_tuan7/screens/Auth/login_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import LoginScreen
+
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:the_cherry_pet_shop/screens/Auth/login_screen.dart'; // Import LoginScreen
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
