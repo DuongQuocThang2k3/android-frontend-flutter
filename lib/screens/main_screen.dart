@@ -4,6 +4,7 @@ import 'Auth/logout_screen.dart';
 import 'home_screen.dart';
 import 'account_screen.dart';
 import 'market_screen.dart';
+import 'admin_screen.dart'; // Import màn hình AdminScreen
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,12 +16,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  // Simplified screens list without video assets
+  // Danh sách màn hình
   final List<Widget> _screens = [
     const HomeScreen(),
     const VideoListScreen(),
     const AccountScreen(),
     const MarketScreen(),
+    const AdminScreen(), // Thêm AdminScreen
   ];
 
   Color _getIconColor(int index) {
@@ -30,29 +32,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'The Cherry PetShop',
-          style: TextStyle(
-            color: Colors.white, // Đặt màu chữ là trắng
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blueAccent,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              // Điều hướng đến màn hình Logout khi nhấn vào nút "Đăng xuất"
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LogoutScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: IndexedStack( // Using IndexedStack to preserve state
+      body: IndexedStack(
         index: _currentIndex,
         children: _screens,
       ),
@@ -89,6 +69,10 @@ class _MainScreenState extends State<MainScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.shopping_cart, color: _getIconColor(3)),
               label: 'Market',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.admin_panel_settings, color: _getIconColor(4)), // Icon Admin
+              label: 'Admin', // Label Admin
             ),
           ],
           type: BottomNavigationBarType.fixed,

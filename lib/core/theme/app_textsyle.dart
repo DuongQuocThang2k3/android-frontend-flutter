@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '/core/theme/app_color.dart';
+
+import 'app_color.dart';
+
 
 class AppTextStyle {
   static AppTextStyle instance = AppTextStyle();

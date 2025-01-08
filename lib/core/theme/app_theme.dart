@@ -1,7 +1,8 @@
 
 import 'package:flutter/material.dart';
-import 'package:the_cherry_pet_shop/core/theme/app_color.dart';
-import 'package:the_cherry_pet_shop/core/theme/app_textsyle.dart';
+
+import 'app_color.dart';
+import 'app_textsyle.dart';
 
 class AppTheme {
   static final AppTextStyle _textStyle = AppTextStyle.instance;
