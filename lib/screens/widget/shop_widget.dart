@@ -15,7 +15,7 @@ class ShopWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Text(
-              "Looking for \nNew Puppy or Kitten ?",
+              "Bạn đang tìm \nChó con hoặc mèo con mới?",
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -23,7 +23,7 @@ class ShopWidget extends StatelessWidget {
             height: 100,
             child: Image(
               image: AssetImage(
-                "assets/puppy_shop.png",
+                "assets/puppy_shop.jpg",
               ),
               fit: BoxFit.cover,
             ),
@@ -33,7 +33,7 @@ class ShopWidget extends StatelessWidget {
             height: 100,
             child: Image(
               image: AssetImage(
-                "assets/kitten_shop.png",
+                "assets/kitten_shop.jpg",
               ),
               fit: BoxFit.cover,
             ),

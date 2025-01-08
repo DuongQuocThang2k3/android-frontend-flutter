@@ -95,4 +95,10 @@ flutter:
   assets:
     - assets/
     - .env
+    - assets/img_cat_dog_bed.jpg
+    - assets/img_cat_condo.jpg
+    - assets/img_dog_toy.jpg
+    - assets/img_dog_bowl.jpg
+    - assets/puppy_shop.jpg
+    - assets/img_dog_toy.jpg
 

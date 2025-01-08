@@ -1,7 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart' show BuildContext, State, StatefulWidget, Widget;
 
 class PromotionWidget extends StatefulWidget {
   const PromotionWidget({super.key});
@@ -12,9 +10,18 @@ class PromotionWidget extends StatefulWidget {
 
 class _PromotionWidgetState extends State<PromotionWidget> {
   final ads = [
-    "assets/ads_1.png",
-    "assets/ads_2.png",
-    "assets/ads_3.png",
+    {
+      "image": "assets/ads_001.jpg",
+      "text": "Ưu đãi giảm giá 20% toàn bộ dịch vụ !",
+    },
+    {
+      "image": "assets/ads_002.jpg",
+      "text": "Mua 1 tặng 1 cho các sản phẩm thú cưng.",
+    },
+    {
+      "image": "assets/ads_003.jpg",
+      "text": "Miễn phí vận chuyển thú cưng !",
+    },
   ];
 
   @override
@@ -30,7 +37,7 @@ class _PromotionWidgetState extends State<PromotionWidget> {
           ),
         ),
         SizedBox(
-          height: 160,
+          height: 200, // Đủ chiều cao cho cả hình và chữ
           width: MediaQuery.of(context).size.width,
           child: CarouselSlider.builder(
             options: CarouselOptions(
@@ -43,14 +50,28 @@ class _PromotionWidgetState extends State<PromotionWidget> {
             itemBuilder: (context, index, realIndex) {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image(
-                    image: AssetImage(
-                      ads[index],
+                child: Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image(
+                        image: AssetImage(
+                          ads[index]["image"]!,
+                        ),
+                        fit: BoxFit.fill,
+                        height: 140, // Chiều cao cho hình ảnh
+                        width: double.infinity,
+                      ),
                     ),
-                    fit: BoxFit.fill,
-                  ),
+                    const SizedBox(height: 4), // Khoảng cách nhỏ giữa hình và chữ
+                    Text(
+                      ads[index]["text"]!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               );
             },
