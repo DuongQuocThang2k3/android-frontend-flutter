@@ -234,6 +234,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 200,
                   fit: BoxFit.cover,
                 ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => MainScreen()),
+                          (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
+                    );
+                  },
+                  child: const Text(
+                    "Quay về trang chủ",
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
