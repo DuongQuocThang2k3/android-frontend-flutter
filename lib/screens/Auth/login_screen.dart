@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_cherry_pet_shop/core/route/app_route_name.dart';
-import 'package:the_cherry_pet_shop/core/theme/app_color.dart';
-import 'package:the_cherry_pet_shop/screens/Auth/registration_screen.dart';
 import 'package:the_cherry_pet_shop/screens/admin_screen.dart';
-import 'package:the_cherry_pet_shop/screens/main_screen.dart';
 import 'package:the_cherry_pet_shop/utils/auth.dart';
+
+import '../main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,7 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _checkToken(); // Kiểm tra token khi mở màn hình
   }
 
-  // Kiểm tra token trong SharedPreferences và điều hướng nếu có token
   Future<void> _checkToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
@@ -49,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Hàm xử lý đăng nhập
   Future<void> _handleLogin() async {
     if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -203,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+                          MaterialPageRoute(builder: (context) => const MainScreen()),
                         );
                       },
                       child: const Text(

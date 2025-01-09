@@ -19,6 +19,7 @@ class Product {
     required this.images,
   });
 
+  // Tạo đối tượng từ JSON
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       productId: json['productId'],
@@ -34,6 +35,7 @@ class Product {
     );
   }
 
+  // Chuyển đối tượng sang JSON
   Map<String, dynamic> toJson() {
     return {
       'productId': productId,
