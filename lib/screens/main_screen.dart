@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_cherry_pet_shop/models/user_model.dart';
@@ -7,8 +6,7 @@ import 'package:the_cherry_pet_shop/screens/video_screen.dart';
 import 'package:the_cherry_pet_shop/screens/map_screen.dart'; // Import màn hình MapHere
 import 'home_screen.dart';
 import 'account_screen.dart';
-import 'admin_screen.dart';
-
+import 'admin/admin_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -23,11 +21,18 @@ class _MainScreenState extends State<MainScreen> {
   bool isAdmin = false; // Trạng thái quyền Admin
   UserModel? userModel; // Dữ liệu người dùng
 
-  late final List<Widget> _screens;
+  // Khởi tạo `_screens` mặc định với danh sách trống
+  late List<Widget> _screens = [Container()];
 
   @override
   void initState() {
     super.initState();
+    _screens = [
+      HomeScreen(), // Removed const
+      VideoListScreen(), // Removed const
+      MapScreen(), // Removed const
+      AccountScreen(), // Removed const
+    ]; // Giá trị mặc định ban đầu
     _checkUserRole(); // Kiểm tra vai trò người dùng
   }
 
@@ -39,7 +44,13 @@ class _MainScreenState extends State<MainScreen> {
       setState(() {
         isLoggedIn = true;
         userModel = UserModel.fromJson(json.decode(userData));
-        isAdmin = userModel?.role == 'Admin'; // Kiểm tra vai trò Admin
+
+        // Kiểm tra vai trò của người dùng
+        if (userModel?.role == 'Admin') {
+          isAdmin = true;
+        } else {
+          isAdmin = false;
+        }
       });
     } else {
       setState(() {
@@ -48,17 +59,18 @@ class _MainScreenState extends State<MainScreen> {
       });
     }
 
-    // Cấu hình danh sách màn hình
+    // Cấu hình danh sách màn hình dựa trên vai trò
     setState(() {
       _screens = [
-        const HomeScreen(),
-        const VideoListScreen(),
-        MapScreen(), // Thêm màn hình MapHere
-        if (isAdmin) const AdminScreen(), // Chỉ thêm AdminScreen nếu là Admin
-        const AccountScreen(),
+        HomeScreen(), // Home luôn hiển thị
+        VideoListScreen(),
+        MapScreen(),
+        if (isAdmin) AdminScreen(), // Chỉ hiển thị AdminScreen nếu là Admin
+        AccountScreen(), // Account luôn hiển thị
       ];
     });
   }
+
 
   Color _getIconColor(int index) {
     return _currentIndex == index ? Colors.blueAccent : Colors.grey;
@@ -84,8 +96,7 @@ class _MainScreenState extends State<MainScreen> {
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
-            // Chặn truy cập màn hình Admin nếu không phải Admin
-            if (index == 4 && !isAdmin) {
+            if (index == 4 && !isAdmin) { // Index 3 là màn hình Admin
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Bạn không có quyền truy cập màn hình Admin!')),
               );
@@ -95,6 +106,7 @@ class _MainScreenState extends State<MainScreen> {
               _currentIndex = index;
             });
           },
+
           items: [
             BottomNavigationBarItem(
               icon: Icon(Icons.home, color: _getIconColor(0)),
@@ -105,16 +117,16 @@ class _MainScreenState extends State<MainScreen> {
               label: 'Video',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.map, color: _getIconColor(3)),
-              label: 'MapHere',
+              icon: Icon(Icons.map, color: _getIconColor(2)),
+              label: 'Map',
             ),
             if (isAdmin) // Chỉ hiển thị Admin nếu là Admin
               BottomNavigationBarItem(
-                icon: Icon(Icons.admin_panel_settings, color: _getIconColor(4)),
+                icon: Icon(Icons.admin_panel_settings, color: _getIconColor(3)),
                 label: 'Admin',
               ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle, color: _getIconColor(5)),
+              icon: Icon(Icons.account_circle, color: _getIconColor(4)),
               label: 'Account',
             ),
           ],
