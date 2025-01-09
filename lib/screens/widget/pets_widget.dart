@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../pet/pet_list_screen.dart';
 import '../../models/pet_model.dart';
-
 
 class PetsWidget extends StatefulWidget {
   const PetsWidget({super.key});
@@ -33,26 +33,39 @@ class _PetsWidgetState extends State<PetsWidget> {
               return const SizedBox(width: 8);
             },
             itemBuilder: (context, index) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    height: 48,
-                    width: 48,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: AssetImage(
-                          pets[index].image,
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PetListScreen(
+                        categoryId: int.parse(pets[index].id),
+                        categoryName: pets[index].name,
+                      ),
+                    ),
+                  );
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      height: 48,
+                      width: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: AssetImage(
+                            pets[index].image,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Text(
-                    pets[index].name,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  )
-                ],
+                    Text(
+                      pets[index].name,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    )
+                  ],
+                ),
               );
             },
           ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_cherry_pet_shop/core/route/app_route_name.dart';
-import 'package:the_cherry_pet_shop/core/theme/app_color.dart';
 import 'package:the_cherry_pet_shop/screens/Auth/registration_screen.dart';
 import 'package:the_cherry_pet_shop/screens/admin_screen.dart';
 import 'package:the_cherry_pet_shop/screens/main_screen.dart';

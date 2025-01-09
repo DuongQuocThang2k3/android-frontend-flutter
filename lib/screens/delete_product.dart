@@ -38,7 +38,7 @@ class _DeleteProductScreenState extends State<DeleteProductScreen> {
       Navigator.pop(context, true); // Quay lại màn hình trước
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to delete product: ${response.statusCode}')),
+        SnackBar(content: Text('Failed to delete pet: ${response.statusCode}')),
       );
     }
   }
@@ -53,7 +53,7 @@ class _DeleteProductScreenState extends State<DeleteProductScreen> {
             : Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Are you sure you want to delete this product?'),
+            const Text('Are you sure you want to delete this pet?'),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => deleteProduct(context),

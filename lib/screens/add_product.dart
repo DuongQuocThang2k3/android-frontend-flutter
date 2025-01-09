@@ -31,7 +31,7 @@ class AddProductScreen extends StatelessWidget {
       Navigator.pop(context, true); // Quay lại màn hình trước và báo thành công
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to add product')),
+        const SnackBar(content: Text('Failed to add pet')),
       );
     }
   }

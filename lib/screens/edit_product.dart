@@ -77,7 +77,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
       Navigator.pop(context, true); // Trở lại màn hình trước
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update product: ${response.statusCode}\n${response.body}')),
+        SnackBar(content: Text('Failed to update pet: ${response.statusCode}\n${response.body}')),
       );
     }
   }

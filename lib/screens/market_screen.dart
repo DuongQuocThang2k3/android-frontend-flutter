@@ -136,7 +136,7 @@ class _MarketScreenState extends State<MarketScreen> {
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load product for: $query')),
+          SnackBar(content: Text('Failed to load pet for: $query')),
         );
       }
     }

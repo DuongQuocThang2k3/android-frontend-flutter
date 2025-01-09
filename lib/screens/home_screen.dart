@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:the_cherry_pet_shop/screens/widget/carousel_widget.dart';
 import 'package:the_cherry_pet_shop/screens/widget/shop_widget.dart';
 import '../core/theme/app_color.dart';
