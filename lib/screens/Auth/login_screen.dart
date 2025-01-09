@@ -23,15 +23,16 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _checkToken(); // Kiểm tra token khi mở màn hình
+    _checkLoginStatus();
   }
 
-  // Kiểm tra token trong SharedPreferences và điều hướng nếu có token
-  Future<void> _checkToken() async {
+  // Kiểm tra trạng thái đăng nhập bằng token hoặc username
+  Future<void> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
+    String? username = prefs.getString('userId'); // Lấy username đã lưu
 
-    if (token != null) {
+    if (token != null || username != null) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainScreen()),
             (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
@@ -62,14 +63,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result['success'] == true) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('jwt_token', result['token']); // Lưu token vào SharedPreferences
+
+      // Lưu token vào SharedPreferences
+      await prefs.setString('jwt_token', result['token']);
+
+      // Lưu username (userId) vào SharedPreferences
+      await prefs.setString('userId', _usernameController.text);
 
       // Lưu thông tin người dùng
       Map<String, dynamic> userInfo = Auth.decodeToken(result['token']);
       UserModel user = UserModel.fromJson(userInfo);
-      await prefs.setString('user_info', json.encode(user.toJson())); // Lưu thông tin người dùng dưới dạng JSON
+      await prefs.setString('user_info', json.encode(user.toJson()));
 
-      // Điều hướng đến MainScreen và xóa toàn bộ ngăn xếp điều hướng
+      print("User ID đã lưu: ${_usernameController.text}"); // Log kiểm tra
+
+      // Điều hướng đến MainScreen
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainScreen()),
             (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
@@ -108,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
                 TextField(
                   controller: _usernameController,
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     hintText: 'Tên đăng nhập',
                     filled: true,
@@ -156,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[200],
+                      backgroundColor: Colors.blue[700],
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -199,48 +207,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Quên mật khẩu? "),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ForgotPasswordScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Khôi phục ngay',
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 20),
                 Image.asset(
                   'assets/nen-pet.png',
                   height: 200,
                   width: 200,
                   fit: BoxFit.cover,
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (context) => MainScreen()),
-                          (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
-                    );
-                  },
-                  child: const Text(
-                    "Quay về trang chủ",
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
               ],
             ),

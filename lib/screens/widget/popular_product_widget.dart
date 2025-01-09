@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:the_cherry_pet_shop/config/config_url.dart';
 import '../../models/pet_service_model.dart';
 import '../apoinment/ServiceDetailScreen.dart';
 
@@ -22,7 +23,7 @@ class _PopularServiceWidgetState extends State<PopularServiceWidget> {
   }
 
   Future<List<PetService>> _fetchServices() async {
-    const String apiUrl = 'https://differentgoldphone43.conveyor.cloud/api/Service';
+    final String apiUrl = '${Config_URL.baseUrl}Service';
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {

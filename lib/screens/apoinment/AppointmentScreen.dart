@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../config/config_url.dart';
 import '../../models/Appointment.dart';
 import '../../models/pet_service_model.dart';
 
@@ -41,7 +42,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       status: "Pending",
     );
 
-    const String apiUrl = 'https://differentgoldphone43.conveyor.cloud/api/Appointment';
+    final String apiUrl = '${Config_URL.baseUrl}Appointment';
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
