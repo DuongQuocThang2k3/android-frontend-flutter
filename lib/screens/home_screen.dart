@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:the_cherry_pet_shop/screens/Auth/login_screen.dart';
 import 'package:the_cherry_pet_shop/screens/Auth/logout_screen.dart';
 import 'package:the_cherry_pet_shop/screens/widget/carousel_widget.dart';
 import 'package:the_cherry_pet_shop/screens/widget/shop_widget.dart';
 import '../core/theme/app_color.dart';
+import 'home_screen/search_box.dart';
 import 'widget/category_widget.dart';
 import 'widget/pets_widget.dart';
 import 'widget/popular_product_widget.dart';
@@ -36,6 +36,15 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<List<String>> fetchSuggestionsFromAPI(String query) async {
+    // Giả lập API call
+    await Future.delayed(const Duration(milliseconds: 500)); // Delay mô phỏng API
+    return ['Product 1', 'Product 2', 'Pet 1', 'Service 1']
+        .where((item) => item.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+  }
+
+
 
 
   @override
@@ -65,23 +74,9 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: AppColor.primaryColor,
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(56),
-              child: Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColor.white,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.search),
-                    Expanded(
-                      child: Text("Search | pets, toy, etc."),
-                    )
-                  ],
-                ),
-              ),
+              child: SearchBox(fetchSuggestions: fetchSuggestionsFromAPI),
             ),
+
           ),
 
           /// using this method you can easily change the widget order

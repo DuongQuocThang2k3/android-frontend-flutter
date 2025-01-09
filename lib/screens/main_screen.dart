@@ -7,7 +7,6 @@ import 'package:the_cherry_pet_shop/screens/video_screen.dart';
 import 'package:the_cherry_pet_shop/screens/map_screen.dart'; // Import màn hình MapHere
 import 'home_screen.dart';
 import 'account_screen.dart';
-import 'market_screen.dart';
 import 'admin_screen.dart';
 
 
@@ -54,7 +53,6 @@ class _MainScreenState extends State<MainScreen> {
       _screens = [
         const HomeScreen(),
         const VideoListScreen(),
-        const MarketScreen(),
         MapScreen(), // Thêm màn hình MapHere
         if (isAdmin) const AdminScreen(), // Chỉ thêm AdminScreen nếu là Admin
         const AccountScreen(),
@@ -105,10 +103,6 @@ class _MainScreenState extends State<MainScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.video_library, color: _getIconColor(1)),
               label: 'Video',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart, color: _getIconColor(2)),
-              label: 'Market',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.map, color: _getIconColor(3)),
