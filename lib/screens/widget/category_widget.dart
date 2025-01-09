@@ -12,7 +12,7 @@ class CategoryWidget extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           child: Text(
-            "Dịch vụ",
+            "Danh mục sản phẩm dành cho thú cưn",
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
