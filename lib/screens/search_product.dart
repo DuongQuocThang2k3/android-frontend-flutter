@@ -13,7 +13,7 @@ class SearchService {
       var data = json.decode(response.body);
       return [productPost.fromJson(data)]; // Trả về một danh sách với sản phẩm tìm thấy
     } else {
-      throw Exception('Failed to find pet with ID: $id');
+      throw Exception('Failed to find product with ID: $id');
     }
   }
 
@@ -41,7 +41,7 @@ class SearchService {
     } else {
       // Nếu có thông báo lỗi từ API, in ra để xử lý
       print('Error Response: ${response.body}');
-      throw Exception('Failed to find pet with name: $name');
+      throw Exception('Failed to find product with name: $name');
     }
   }
 }

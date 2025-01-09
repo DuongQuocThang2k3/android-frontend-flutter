@@ -9,29 +9,32 @@ class Product {
   final List<ProductImage> images;
 
   Product({
-    required this.productId,
-    required this.name,
-    required this.price,
-    required this.description,
-    required this.quantity,
-    required this.supplyCategoryId,
+    this.productId = 0,
+    this.name = '',
+    this.price = 0.0,
+    this.description = '',
+    this.quantity = 0,
+    this.supplyCategoryId = 0,
     required this.supplyCategory,
-    required this.images,
+    this.images = const [],
   });
 
   // Tạo đối tượng từ JSON
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      productId: json['productId'],
-      name: json['name'],
-      price: (json['price'] as num).toDouble(),
-      description: json['description'],
-      quantity: json['quantity'],
-      supplyCategoryId: json['supplyCategoryId'],
-      supplyCategory: SupplyCategory.fromJson(json['supplyCategory']),
-      images: (json['images'] as List)
-          .map((image) => ProductImage.fromJson(image))
-          .toList(),
+      productId: json['productId'] ?? 0,
+      name: json['name'] ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      description: json['description'] ?? '',
+      quantity: json['quantity'] ?? 0,
+      supplyCategoryId: json['supplyCategoryId'] ?? 0,
+      supplyCategory: json['supplyCategory'] != null
+          ? SupplyCategory.fromJson(json['supplyCategory'])
+          : SupplyCategory(supplyCategoryId: 0, name: ''),
+      images: (json['images'] as List<dynamic>?)
+          ?.map((image) => ProductImage.fromJson(image))
+          .toList() ??
+          [],
     );
   }
 
@@ -55,14 +58,14 @@ class SupplyCategory {
   final String name;
 
   SupplyCategory({
-    required this.supplyCategoryId,
-    required this.name,
+    this.supplyCategoryId = 0,
+    this.name = '',
   });
 
   factory SupplyCategory.fromJson(Map<String, dynamic> json) {
     return SupplyCategory(
-      supplyCategoryId: json['supplyCategoryId'],
-      name: json['name'],
+      supplyCategoryId: json['supplyCategoryId'] ?? 0,
+      name: json['name'] ?? '',
     );
   }
 
@@ -80,16 +83,16 @@ class ProductImage {
   final String imageUrl;
 
   ProductImage({
-    required this.productImageId,
-    required this.productId,
-    required this.imageUrl,
+    this.productImageId = 0,
+    this.productId = 0,
+    this.imageUrl = '',
   });
 
   factory ProductImage.fromJson(Map<String, dynamic> json) {
     return ProductImage(
-      productImageId: json['productImageId'],
-      productId: json['productId'],
-      imageUrl: json['imageUrl'],
+      productImageId: json['productImageId'] ?? 0,
+      productId: json['productId'] ?? 0,
+      imageUrl: json['imageUrl'] ?? '',
     );
   }
 
