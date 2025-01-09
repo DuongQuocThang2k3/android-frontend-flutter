@@ -1,11 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'Auth/AddProductScreen.dart';
-import 'edit_product.dart';
-import 'delete_product.dart';
-import 'product.dart';
-import 'search_product.dart';
+import 'product.dart'; // Import model Product nếu chưa có
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,7 +14,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Product> products = [];
   bool isLoading = true;
   final TextEditingController _searchController = TextEditingController();
-  final String apiUrl = 'https://bigredcat47.conveyor.cloud/api/Product';
+  final String apiUrl = 'https://othergreylamp51.conveyor.cloud/api/Product';
 
   @override
   void initState() {
@@ -43,9 +39,13 @@ class _HomeScreenState extends State<HomeScreen> {
               .toList();
           isLoading = false;
         });
+      } else {
+        throw Exception('Failed to fetch products: ${response.body}');
       }
     } catch (e) {
-      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching products: $e')),
+      );
       setState(() {
         isLoading = false;
       });
@@ -53,25 +53,59 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<bool> _addProduct(Product product) async {
+    // Chuẩn bị request body dựa trên định dạng mà bạn yêu cầu
+    final Map<String, dynamic> requestBody = {
+      "productId": 0, // Giữ nguyên 0 nếu thêm sản phẩm mới
+      "name": product.name,
+      "price": product.price,
+      "description": product.description,
+      "quantity": product.quantity,
+      "supplyCategoryId": product.supplyCategoryId,
+      "supplyCategory": {
+        "supplyCategoryId": product.supplyCategory.supplyCategoryId,
+        "name": product.supplyCategory.name,
+      },
+      "images": product.images
+          .map((image) => {
+        "productImageId": image.productImageId,
+        "productId": image.productId,
+        "imageUrl": image.imageUrl,
+      })
+          .toList(),
+    };
+
     try {
       final response = await http.post(
-        Uri.parse('$apiUrl/products'),
+        Uri.parse('$apiUrl'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: json.encode(product.toJson()),
+        body: json.encode(requestBody), // Encode request body
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        await fetchProducts();
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product added successfully!')),
+        );
+        await fetchProducts(); // Làm mới danh sách sản phẩm
         return true;
       } else {
-        print('Failed to create product. Status code: ${response.statusCode}');
+        // Xử lý khi không thành công
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to add product: ${response.statusCode}\n${response.body}',
+            ),
+          ),
+        );
         return false;
       }
     } catch (e) {
-      print('Error adding product: $e');
+      // Xử lý lỗi mạng hoặc server không phản hồi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
       return false;
     }
   }
@@ -85,21 +119,22 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              setState(() {
-                fetchProducts();
-              });
-            },
+            onPressed: fetchProducts,
           ),
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AddProductScreen(),
+                  builder: (context) => AddProductScreen(
+                    onProductAdded: _addProduct,
+                  ),
                 ),
               );
+              if (result == true) {
+                fetchProducts();
+              }
             },
           ),
         ],
@@ -115,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search),
                   onPressed: () {
-                    // Search logic can be added here
+                    // Thêm logic tìm kiếm ở đây nếu cần
                   },
                 ),
               ),
@@ -193,5 +228,18 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+}
+
+class AddProductScreen extends StatelessWidget {
+  final Future<bool> Function(Product) onProductAdded;
+
+  const AddProductScreen({Key? key, required this.onProductAdded})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Logic để nhập thông tin sản phẩm mới
+    return Container(); // Hoàn thành giao diện AddProduct nếu cần
   }
 }

@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:the_cherry_pet_shop/screens/main_screen.dart';
 import 'package:the_cherry_pet_shop/utils/auth.dart';
-
 import '../../models/user_model.dart';
 import '../../core/route/app_route_name.dart';
-import '../main_screen.dart';
 import 'forgot_password_screen.dart';
 
 import 'registration_screen.dart';
