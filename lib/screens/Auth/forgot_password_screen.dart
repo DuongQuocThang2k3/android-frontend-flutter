@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../config/config_url.dart';
+
 class ForgotPasswordScreen extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
 
@@ -19,7 +21,7 @@ class ForgotPasswordScreen extends StatelessWidget {
     try {
       // Gửi yêu cầu POST tới API
       final response = await http.post(
-        Uri.parse('https://differentgoldphone43.conveyor.cloud/api/Authenticate/send-otp'),
+        Uri.parse('${Config_URL.baseUrl}Authenticate/send-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(username), // Gửi chuỗi trực tiếp
       );
@@ -132,7 +134,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     try {
       // Gửi yêu cầu POST tới API
       final response = await http.post(
-        Uri.parse('https://differentgoldphone43.conveyor.cloud/api/Authenticate/reset-password'),
+        Uri.parse('${Config_URL.baseUrl}Authenticate/reset-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': widget.username,
