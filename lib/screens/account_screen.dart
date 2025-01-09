@@ -34,6 +34,7 @@ class _AccountScreenState extends State<AccountScreen> {
     } else {
       setState(() {
         isLoggedIn = false;
+        userModel = null; // Reset thông tin user về null
       });
     }
   }
@@ -41,23 +42,27 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     if (!isLoggedIn) {
+      userModel = null;
       // Chưa đăng nhập
       return Scaffold(
-        body: Center(
-          child: ElevatedButton(
-            onPressed: () {
-              // Chuyển đến màn hình đăng nhập
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              ).then((_) {
-                _checkLoginStatus(); // Kiểm tra lại trạng thái sau khi đăng nhập
-              });
-            },
-            child: const Text('Đăng nhập'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueAccent,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+        body: Padding(
+          padding: const EdgeInsets.all(40.0), // Thêm 40px padding toàn bộ
+          child: Center(
+            child: ElevatedButton(
+              onPressed: () {
+                // Chuyển đến màn hình đăng nhập
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                ).then((_) {
+                  _checkLoginStatus(); // Kiểm tra lại trạng thái sau khi đăng nhập
+                });
+              },
+              child: const Text('Đăng nhập'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+              ),
             ),
           ),
         ),
@@ -67,7 +72,7 @@ class _AccountScreenState extends State<AccountScreen> {
     // Đã đăng nhập và có dữ liệu user
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+        padding: const EdgeInsets.all(40.0), // Thêm 40px padding toàn bộ
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
