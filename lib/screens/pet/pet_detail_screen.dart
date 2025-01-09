@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../Auth/login_screen.dart';
-import '../PaymentScreen/PaymentScreen.dart';
-import '../PaymentScreen/shopping_cart_screen.dart';
+import '../payment_detail/payment_detail_screen.dart';
+import '../payment_detail/shopping_cart_screen.dart';
 
 
 class PetDetailScreen extends StatelessWidget {

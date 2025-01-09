@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:the_cherry_pet_shop/models/user_model.dart';
 import 'package:the_cherry_pet_shop/screens/video_screen.dart';
 import 'home_screen.dart';
 import 'account_screen.dart';
@@ -14,15 +18,46 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  bool isLoggedIn = false; // Trạng thái đăng nhập
+  bool isAdmin = false; // Trạng thái quyền Admin
+  UserModel? userModel; // Dữ liệu người dùng
 
-  // Danh sách màn hình
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const VideoListScreen(),
-    const AccountScreen(),
-    const MarketScreen(),
-    const AdminScreen(), // Thêm AdminScreen
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserRole(); // Kiểm tra vai trò người dùng
+  }
+
+  Future<void> _checkUserRole() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? userData = prefs.getString('user_info');
+
+    if (userData != null) {
+      setState(() {
+        isLoggedIn = true;
+        userModel = UserModel.fromJson(json.decode(userData));
+        isAdmin = userModel?.role == 'Admin'; // Kiểm tra vai trò Admin
+      });
+    } else {
+      setState(() {
+        isLoggedIn = false;
+        isAdmin = false;
+      });
+    }
+
+    // Cấu hình danh sách màn hình
+    setState(() {
+      _screens = [
+        const HomeScreen(),
+        const VideoListScreen(),
+        const MarketScreen(),
+        if (isAdmin) const AdminScreen(), // Chỉ thêm AdminScreen nếu là Admin
+        const AccountScreen(),
+      ];
+    });
+  }
 
   Color _getIconColor(int index) {
     return _currentIndex == index ? Colors.blueAccent : Colors.grey;
@@ -48,6 +83,13 @@ class _MainScreenState extends State<MainScreen> {
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
+            // Chặn truy cập màn hình Admin nếu không phải Admin
+            if (index == 3 && !isAdmin) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Bạn không có quyền truy cập màn hình Admin!')),
+              );
+              return;
+            }
             setState(() {
               _currentIndex = index;
             });
@@ -62,16 +104,17 @@ class _MainScreenState extends State<MainScreen> {
               label: 'Video',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle, color: _getIconColor(2)),
-              label: 'Account',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart, color: _getIconColor(3)),
+              icon: Icon(Icons.shopping_cart, color: _getIconColor(2)),
               label: 'Market',
             ),
+            if (isAdmin) // Chỉ hiển thị Admin nếu là Admin
+              BottomNavigationBarItem(
+                icon: Icon(Icons.admin_panel_settings, color: _getIconColor(3)),
+                label: 'Admin',
+              ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.admin_panel_settings, color: _getIconColor(4)), // Icon Admin
-              label: 'Admin', // Label Admin
+              icon: Icon(Icons.account_circle, color: _getIconColor(4)),
+              label: 'Account',
             ),
           ],
           type: BottomNavigationBarType.fixed,

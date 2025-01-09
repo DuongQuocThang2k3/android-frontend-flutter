@@ -1,15 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:the_cherry_pet_shop/core/route/app_route_name.dart';
-import 'package:the_cherry_pet_shop/screens/Auth/registration_screen.dart';
-import 'package:the_cherry_pet_shop/screens/admin_screen.dart';
 import 'package:the_cherry_pet_shop/screens/main_screen.dart';
 import 'package:the_cherry_pet_shop/utils/auth.dart';
-
+import '../../models/user_model.dart';
+import '../../core/route/app_route_name.dart';
 import 'forgot_password_screen.dart';
 
-
-
+import 'registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,20 +34,10 @@ class _LoginScreenState extends State<LoginScreen> {
     String? token = prefs.getString('jwt_token');
 
     if (token != null) {
-      Map<String, dynamic> decodedToken = Auth.decodeToken(token);
-      String role = decodedToken['role'] ?? 'User';
-
-      if (role == 'Admin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminScreen()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+      );
     }
   }
 
@@ -76,22 +64,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result['success'] == true) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('jwt_token', result['token']);
+      await prefs.setString('jwt_token', result['token']); // Lưu token vào SharedPreferences
 
-      Map<String, dynamic> decodedToken = Auth.decodeToken(result['token']);
-      String role = decodedToken['role'] ?? 'User';
+      // Lưu thông tin người dùng
+      Map<String, dynamic> userInfo = Auth.decodeToken(result['token']);
+      UserModel user = UserModel.fromJson(userInfo);
+      await prefs.setString('user_info', json.encode(user.toJson())); // Lưu thông tin người dùng dưới dạng JSON
 
-      if (role == 'Admin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminScreen()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-        );
-      }
+      // Điều hướng đến MainScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScreen()),
+      );
     } else {
       String errorMessage = result['message'] ?? 'Tên đăng nhập hoặc mật khẩu không đúng';
       ScaffoldMessenger.of(context).showSnackBar(
@@ -223,7 +207,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text("Quên mật khẩu? "),
                     TextButton(
                       onPressed: () {
-                        // Điều hướng đến ForgotPasswordScreen
                         Navigator.push(
                           context,
                           MaterialPageRoute(
