@@ -119,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 40,
                     fontWeight: FontWeight.bold,
-                    color: Colors.purple[700],
+                    color: Colors.blue[700],
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -173,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple[700],
+                      backgroundColor: Colors.blue[700],
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -211,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       child: const Text(
                         'Đăng ký ngay',
-                        style: TextStyle(color: Colors.purple),
+                        style: TextStyle(color: Colors.blue),
                       ),
                     ),
                   ],
@@ -254,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Text(
                     "Quay về trang chủ",
                     style: TextStyle(
-                      color: Colors.purple,
+                      color: Colors.blue,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),

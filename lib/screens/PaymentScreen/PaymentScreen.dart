@@ -21,7 +21,6 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  int quantity = 1;
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
@@ -37,8 +36,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double totalPrice = widget.price * quantity;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thanh Toán'),
@@ -59,46 +56,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
               Text(
                 'Giá: ${widget.price.toStringAsFixed(0)} VND',
                 style: const TextStyle(fontSize: 16, color: Colors.blue),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Số lượng:',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            if (quantity > 1) quantity--;
-                          });
-                        },
-                        icon: const Icon(Icons.remove_circle_outline),
-                      ),
-                      Text(
-                        quantity.toString(),
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            quantity++;
-                          });
-                        },
-                        icon: const Icon(Icons.add_circle_outline),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Tổng tiền: ${totalPrice.toStringAsFixed(0)} VND',
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
               ),
               const SizedBox(height: 16),
               const Text(
