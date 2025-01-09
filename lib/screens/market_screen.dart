@@ -32,7 +32,7 @@ class _MarketScreenState extends State<MarketScreen> {
   // Lấy danh sách tất cả sản phẩm từ API
   Future<void> _fetchPosts() async {
     try {
-      final response = await http.get(Uri.parse('https://foundgreenpen14.conveyor.cloud/api/ProductApi'));
+      final response = await http.get(Uri.parse('https://firstaquastone40.conveyor.cloud/api/Product'));
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         List<productPost> products = data.map((item) => productPost.fromJson(item)).toList();
@@ -147,7 +147,7 @@ class _MarketScreenState extends State<MarketScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Market Screen'),
+        title: const Text('PetShop Market'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -163,12 +163,19 @@ class _MarketScreenState extends State<MarketScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
+          Container(
+            color: Colors.blue, // Màu nền giống với trang Home
+            padding: const EdgeInsets.all(8.0), // Thêm padding để tạo khoảng cách
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                labelText: 'Search', // Đổi nhãn để rõ ràng hơn
+                hintText: 'Search | pets, toy, etc.', // Nhãn tìm kiếm
+                fillColor: Colors.white, // Nền trắng cho ô tìm kiếm
+                filled: true, // Kích hoạt màu nền cho ô tìm kiếm
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide.none,
+                ),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search),
                   onPressed: _searchProduct, // Gọi hàm tìm kiếm sản phẩm

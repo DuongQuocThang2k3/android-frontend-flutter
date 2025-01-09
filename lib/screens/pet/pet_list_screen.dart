@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../../config/config_url.dart';
 import 'pet_detail_screen.dart';
 
 class PetListScreen extends StatefulWidget {
@@ -25,8 +26,7 @@ class _PetListScreenState extends State<PetListScreen> {
 
   Future<List<dynamic>> _fetchPetsByCategory(int categoryId) async {
     try {
-      final response =
-      await http.get(Uri.parse('https://othergreylamp51.conveyor.cloud/api/Pet'));
+      final response = await http.get(Uri.parse('${Config_URL.baseUrl}Pet'));
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         return data.where((pet) => pet['categoryId'] == categoryId).toList();
@@ -65,20 +65,12 @@ class _PetListScreenState extends State<PetListScreen> {
                       width: 60,
                       height: 60,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildPlaceholder();
+                      },
                     ),
                   )
-                      : Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.pets,
-                      color: Colors.white,
-                    ),
-                  ),
+                      : _buildPlaceholder(),
                   title: Text(
                     '${index + 1}. ${pet['name']}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -103,6 +95,22 @@ class _PetListScreenState extends State<PetListScreen> {
             return const Center(child: Text('No pets found'));
           }
         },
+      ),
+    );
+  }
+
+  // Hàm xây dựng placeholder khi không có hình ảnh hoặc lỗi
+  Widget _buildPlaceholder() {
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.blue,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Icon(
+        Icons.pets,
+        color: Colors.white,
       ),
     );
   }

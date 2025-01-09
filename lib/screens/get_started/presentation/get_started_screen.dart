@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:the_cherry_pet_shop/screens/Auth/login_screen.dart';
+
 import 'package:the_cherry_pet_shop/screens/main_screen.dart';
 
 import '../../../core/theme/app_color.dart';
+import '../../Auth/login_screen.dart';
 
 class GetStartedScreen extends StatelessWidget {
   const GetStartedScreen({super.key});

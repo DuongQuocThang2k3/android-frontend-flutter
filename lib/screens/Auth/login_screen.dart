@@ -6,6 +6,10 @@ import 'package:the_cherry_pet_shop/screens/admin_screen.dart';
 import 'package:the_cherry_pet_shop/screens/main_screen.dart';
 import 'package:the_cherry_pet_shop/utils/auth.dart';
 
+import 'forgot_password_screen.dart';
+
+
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -208,6 +212,27 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         'Đăng ký ngay',
                         style: TextStyle(color: Colors.purple),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Quên mật khẩu? "),
+                    TextButton(
+                      onPressed: () {
+                        // Điều hướng đến ForgotPasswordScreen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ForgotPasswordScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Khôi phục ngay',
+                        style: TextStyle(color: Colors.blue),
                       ),
                     ),
                   ],
