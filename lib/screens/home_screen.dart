@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:the_cherry_pet_shop/screens/Auth/login_screen.dart';
 import 'package:the_cherry_pet_shop/screens/Auth/logout_screen.dart';
 import 'package:the_cherry_pet_shop/screens/widget/carousel_widget.dart';
 import 'package:the_cherry_pet_shop/screens/widget/shop_widget.dart';
