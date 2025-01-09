@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_cherry_pet_shop/models/user_model.dart';
@@ -22,7 +21,8 @@ class _MainScreenState extends State<MainScreen> {
   bool isAdmin = false; // Trạng thái quyền Admin
   UserModel? userModel; // Dữ liệu người dùng
 
-  late final List<Widget> _screens;
+  late List<Widget> _screens; // Cần thay đổi thành biến động
+  late List<BottomNavigationBarItem> _navItems; // Danh sách các mục Navigation
 
   @override
   void initState() {
@@ -47,14 +47,38 @@ class _MainScreenState extends State<MainScreen> {
       });
     }
 
-    // Cấu hình danh sách màn hình
+    // Cấu hình danh sách màn hình và mục Navigation
     setState(() {
       _screens = [
         const HomeScreen(),
         const VideoListScreen(),
         const MarketScreen(),
-        if (isAdmin) const AdminScreen(), // Chỉ thêm AdminScreen nếu là Admin
+        if (isAdmin) const AdminScreen(), // AdminScreen chỉ hiển thị khi là Admin
         const AccountScreen(),
+      ];
+
+      _navItems = [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home, color: _getIconColor(0)),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.video_library, color: _getIconColor(1)),
+          label: 'Video',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.shopping_cart, color: _getIconColor(2)),
+          label: 'Market',
+        ),
+        if (isAdmin) // Admin chỉ hiển thị khi là Admin
+          BottomNavigationBarItem(
+            icon: Icon(Icons.admin_panel_settings, color: _getIconColor(3)),
+            label: 'Admin',
+          ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.account_circle, color: _getIconColor(isAdmin ? 4 : 3)),
+          label: 'Account',
+        ),
       ];
     });
   }
@@ -84,39 +108,19 @@ class _MainScreenState extends State<MainScreen> {
           currentIndex: _currentIndex,
           onTap: (index) {
             // Chặn truy cập màn hình Admin nếu không phải Admin
-            if (index == 3 && !isAdmin) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Bạn không có quyền truy cập màn hình Admin!')),
-              );
-              return;
+            if (isAdmin) {
+              if (index == 3 && !isAdmin) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Bạn không có quyền truy cập màn hình Admin!')),
+                );
+                return;
+              }
             }
             setState(() {
               _currentIndex = index;
             });
           },
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home, color: _getIconColor(0)),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.video_library, color: _getIconColor(1)),
-              label: 'Video',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart, color: _getIconColor(2)),
-              label: 'Market',
-            ),
-            if (isAdmin) // Chỉ hiển thị Admin nếu là Admin
-              BottomNavigationBarItem(
-                icon: Icon(Icons.admin_panel_settings, color: _getIconColor(3)),
-                label: 'Admin',
-              ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle, color: _getIconColor(4)),
-              label: 'Account',
-            ),
-          ],
+          items: _navItems, // Sử dụng danh sách mục Navigation động
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
           selectedItemColor: Colors.blueAccent,
