@@ -19,7 +19,7 @@ class ForgotPasswordScreen extends StatelessWidget {
     try {
       // Gửi yêu cầu POST tới API
       final response = await http.post(
-        Uri.parse('https://lastblueroof85.conveyor.cloud/api/Authenticate/send-otp'),
+        Uri.parse('https://differentgoldphone43.conveyor.cloud/api/Authenticate/send-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(username), // Gửi chuỗi trực tiếp
       );
@@ -132,7 +132,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     try {
       // Gửi yêu cầu POST tới API
       final response = await http.post(
-        Uri.parse('https://lastblueroof85.conveyor.cloud/api/Authenticate/reset-password'),
+        Uri.parse('https://differentgoldphone43.conveyor.cloud/api/Authenticate/reset-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': widget.username,

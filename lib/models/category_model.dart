@@ -11,10 +11,9 @@ class Category {
 }
 
 final categories = [
-  Category(id: "0",name: "Today Deals", image: "assets/today_deals_category.png"),
-  Category(id: "1",name: "Thức ăn cho pet", image: "assets/cat_food_category.png"),
-  Category(id: "2",name: "Đồ chơi cho pet", image: "assets/cat_toy_category.png"),
-  Category(id: "3",name: "Chăm sóc & vệ sinh", image: "assets/pet_category02.png"),
-  Category(id: "4",name: "Làm đẹp & sức khỏe", image: "assets/pet_category03.png"),
-  Category(id: "5",name: "Vận chuyển", image: "assets/pet_category04.png"),
+  Category(id: "1",name: "Đồ ăn cho pet", image: "assets/san-pham-1648734362.png"),
+  Category(id: "2",name: "Đồ chơi cho pet", image: "assets/dochoimeo.png"),
+  Category(id: "3",name: "Phụ kiện hăm sóc & vệ sinh", image: "assets/dochoicho.png"),
+  Category(id: "4",name: "Làm đẹp & sức khỏe", image: "assets/keocatchopet.png"),
+  Category(id: "5",name: "Dụng cụ vận chuyển ", image: "assets/chuongcho.png"),
 ];

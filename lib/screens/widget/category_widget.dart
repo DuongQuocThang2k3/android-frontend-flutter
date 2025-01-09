@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/category_model.dart';
+import '../product/product_list_screen.dart';
 
 class CategoryWidget extends StatelessWidget {
-  const CategoryWidget({super.key});
+  const CategoryWidget({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +13,7 @@ class CategoryWidget extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           child: Text(
-            "Danh mục sản phẩm dành cho thú cưn",
+            "Danh mục sản phẩm dành cho thú cưng",
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
@@ -23,34 +24,44 @@ class CategoryWidget extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 24),
             itemCount: categories.length,
-            separatorBuilder: (_, __) {
-              return const SizedBox(width: 8);
-            },
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
-              return SizedBox(
-                width: 68,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      height: 48,
-                      width: 48,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                          image: AssetImage(
-                            categories[index].image,
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProductListScreen(
+                        categoryId: int.parse(categories[index].id),
+                        categoryName: categories[index].name,
+                      ),
+                    ),
+                  );
+                },
+                child: SizedBox(
+                  width: 68,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        height: 48,
+                        width: 48,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: AssetImage(categories[index].image),
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                    ),
-                    Text(
-                      categories[index].name,
-                      style: Theme.of(context).textTheme.titleSmall,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                    )
-                  ],
+                      Text(
+                        categories[index].name,
+                        style: Theme.of(context).textTheme.titleSmall,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                      )
+                    ],
+                  ),
                 ),
               );
             },

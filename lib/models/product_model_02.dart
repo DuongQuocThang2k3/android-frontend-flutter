@@ -4,7 +4,6 @@ class Product {
   final int price;
   final String description;
   final int quantity;
-  final int supplyCategoryId;
   final SupplyCategory supplyCategory;
   final List<ProductImage> images;
 
@@ -14,7 +13,6 @@ class Product {
     required this.price,
     required this.description,
     required this.quantity,
-    required this.supplyCategoryId,
     required this.supplyCategory,
     required this.images,
   });
@@ -26,10 +24,9 @@ class Product {
       price: json['price'],
       description: json['description'],
       quantity: json['quantity'],
-      supplyCategoryId: json['supplyCategoryId'],
       supplyCategory: SupplyCategory.fromJson(json['supplyCategory']),
-      images: (json['images'] as List<dynamic>)
-          .map((imageJson) => ProductImage.fromJson(imageJson))
+      images: (json['images'] as List)
+          .map((image) => ProductImage.fromJson(image))
           .toList(),
     );
   }
@@ -41,7 +38,6 @@ class Product {
       'price': price,
       'description': description,
       'quantity': quantity,
-      'supplyCategoryId': supplyCategoryId,
       'supplyCategory': supplyCategory.toJson(),
       'images': images.map((image) => image.toJson()).toList(),
     };
@@ -52,10 +48,7 @@ class SupplyCategory {
   final int supplyCategoryId;
   final String name;
 
-  SupplyCategory({
-    required this.supplyCategoryId,
-    required this.name,
-  });
+  SupplyCategory({required this.supplyCategoryId, required this.name});
 
   factory SupplyCategory.fromJson(Map<String, dynamic> json) {
     return SupplyCategory(
