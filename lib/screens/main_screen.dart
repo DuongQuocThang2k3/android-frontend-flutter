@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_cherry_pet_shop/models/user_model.dart';
 import 'package:the_cherry_pet_shop/screens/video_screen.dart';
-import 'package:the_cherry_pet_shop/screens/map_screen.dart'; // Import màn hình MapHere
 import 'home_screen.dart';
 import 'account_screen.dart';
 import 'market_screen.dart';
 import 'admin_screen.dart';
-
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -55,7 +53,6 @@ class _MainScreenState extends State<MainScreen> {
         const HomeScreen(),
         const VideoListScreen(),
         const MarketScreen(),
-        MapScreen(), // Thêm màn hình MapHere
         if (isAdmin) const AdminScreen(), // Chỉ thêm AdminScreen nếu là Admin
         const AccountScreen(),
       ];
@@ -87,7 +84,7 @@ class _MainScreenState extends State<MainScreen> {
           currentIndex: _currentIndex,
           onTap: (index) {
             // Chặn truy cập màn hình Admin nếu không phải Admin
-            if (index == 4 && !isAdmin) {
+            if (index == 3 && !isAdmin) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Bạn không có quyền truy cập màn hình Admin!')),
               );
@@ -110,17 +107,13 @@ class _MainScreenState extends State<MainScreen> {
               icon: Icon(Icons.shopping_cart, color: _getIconColor(2)),
               label: 'Market',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.map, color: _getIconColor(3)),
-              label: 'MapHere',
-            ),
             if (isAdmin) // Chỉ hiển thị Admin nếu là Admin
               BottomNavigationBarItem(
-                icon: Icon(Icons.admin_panel_settings, color: _getIconColor(4)),
+                icon: Icon(Icons.admin_panel_settings, color: _getIconColor(3)),
                 label: 'Admin',
               ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle, color: _getIconColor(5)),
+              icon: Icon(Icons.account_circle, color: _getIconColor(4)),
               label: 'Account',
             ),
           ],

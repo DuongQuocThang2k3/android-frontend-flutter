@@ -4,9 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_cherry_pet_shop/screens/main_screen.dart';
 import 'package:the_cherry_pet_shop/utils/auth.dart';
 import '../../models/user_model.dart';
-import '../../core/route/app_route_name.dart';
 import 'forgot_password_screen.dart';
-
 import 'registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -25,18 +23,19 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _checkToken(); // Kiểm tra token khi mở màn hình
+    _checkLoginStatus();
   }
 
-  // Kiểm tra token trong SharedPreferences và điều hướng nếu có token
-  Future<void> _checkToken() async {
+  // Kiểm tra trạng thái đăng nhập bằng token hoặc username
+  Future<void> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
+    String? username = prefs.getString('userId'); // Lấy username đã lưu
 
-    if (token != null) {
-      Navigator.pushReplacement(
-        context,
+    if (token != null || username != null) {
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainScreen()),
+            (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
       );
     }
   }
@@ -64,17 +63,24 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result['success'] == true) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('jwt_token', result['token']); // Lưu token vào SharedPreferences
+
+      // Lưu token vào SharedPreferences
+      await prefs.setString('jwt_token', result['token']);
+
+      // Lưu username (userId) vào SharedPreferences
+      await prefs.setString('userId', _usernameController.text);
 
       // Lưu thông tin người dùng
       Map<String, dynamic> userInfo = Auth.decodeToken(result['token']);
       UserModel user = UserModel.fromJson(userInfo);
-      await prefs.setString('user_info', json.encode(user.toJson())); // Lưu thông tin người dùng dưới dạng JSON
+      await prefs.setString('user_info', json.encode(user.toJson()));
+
+      print("User ID đã lưu: ${_usernameController.text}"); // Log kiểm tra
 
       // Điều hướng đến MainScreen
-      Navigator.pushReplacement(
-        context,
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainScreen()),
+            (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
       );
     } else {
       String errorMessage = result['message'] ?? 'Tên đăng nhập hoặc mật khẩu không đúng';
@@ -99,10 +105,10 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const SizedBox(height: 60),
                 Text(
-                  'Pet Shop',
+                  'The Cherry PetShop',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 40,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Colors.blue[700],
                   ),
@@ -110,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
                 TextField(
                   controller: _usernameController,
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     hintText: 'Tên đăng nhập',
                     filled: true,
@@ -201,48 +207,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Quên mật khẩu? "),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ForgotPasswordScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Khôi phục ngay',
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 20),
                 Image.asset(
                   'assets/nen-pet.png',
-                  height: 230,
-                  width: 230,
+                  height: 200,
+                  width: 200,
                   fit: BoxFit.cover,
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRouteName.home,
-                    );
-                  },
-                  child: const Text(
-                    "Quay về trang chủ",
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
               ],
             ),
