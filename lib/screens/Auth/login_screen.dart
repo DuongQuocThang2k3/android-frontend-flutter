@@ -4,9 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_cherry_pet_shop/screens/main_screen.dart';
 import 'package:the_cherry_pet_shop/utils/auth.dart';
 import '../../models/user_model.dart';
-import '../../core/route/app_route_name.dart';
 import 'forgot_password_screen.dart';
-
 import 'registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -34,9 +32,9 @@ class _LoginScreenState extends State<LoginScreen> {
     String? token = prefs.getString('jwt_token');
 
     if (token != null) {
-      Navigator.pushReplacement(
-        context,
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainScreen()),
+            (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
       );
     }
   }
@@ -71,10 +69,10 @@ class _LoginScreenState extends State<LoginScreen> {
       UserModel user = UserModel.fromJson(userInfo);
       await prefs.setString('user_info', json.encode(user.toJson())); // Lưu thông tin người dùng dưới dạng JSON
 
-      // Điều hướng đến MainScreen
-      Navigator.pushReplacement(
-        context,
+      // Điều hướng đến MainScreen và xóa toàn bộ ngăn xếp điều hướng
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainScreen()),
+            (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
       );
     } else {
       String errorMessage = result['message'] ?? 'Tên đăng nhập hoặc mật khẩu không đúng';
@@ -99,10 +97,10 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const SizedBox(height: 60),
                 Text(
-                  'Pet Shop',
+                  'The Cherry PetShop',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 40,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Colors.blue[700],
                   ),
@@ -158,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[700],
+                      backgroundColor: Colors.blue[200],
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -207,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text("Quên mật khẩu? "),
                     TextButton(
                       onPressed: () {
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                             builder: (context) => ForgotPasswordScreen(),
@@ -224,15 +222,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
                 Image.asset(
                   'assets/nen-pet.png',
-                  height: 230,
-                  width: 230,
+                  height: 200,
+                  width: 200,
                   fit: BoxFit.cover,
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRouteName.home,
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => MainScreen()),
+                          (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
                     );
                   },
                   child: const Text(

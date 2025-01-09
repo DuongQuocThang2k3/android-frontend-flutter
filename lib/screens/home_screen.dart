@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_cherry_pet_shop/screens/Auth/login_screen.dart';
+import 'package:the_cherry_pet_shop/screens/Auth/logout_screen.dart';
 import 'package:the_cherry_pet_shop/screens/widget/carousel_widget.dart';
 import 'package:the_cherry_pet_shop/screens/widget/shop_widget.dart';
 import '../core/theme/app_color.dart';
@@ -35,21 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Hàm xử lý đăng xuất
-  Future<void> _handleLogout() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('jwt_token'); // Xóa token khỏi SharedPreferences
 
-    setState(() {
-      isLoggedIn = false;
-    });
-
-    // Điều hướng đến màn hình đăng nhập
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +52,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (isLoggedIn) // Hiển thị nút Logout nếu đã đăng nhập
                   IconButton(
                     icon: const Icon(Icons.logout),
-                    onPressed: _handleLogout,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LogoutScreen()),
+                      );
+                    },
                   ),
               ],
             ),
