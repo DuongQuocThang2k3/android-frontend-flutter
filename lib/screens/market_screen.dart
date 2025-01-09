@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/productPost.dart';
+import 'Auth/AddProductScreen.dart';
 import 'search_product.dart';
 import 'add_product.dart';
 import 'edit_product.dart';
