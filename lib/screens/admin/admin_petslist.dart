@@ -1,6 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import '../../config/config_url.dart';
 
 class AdminPetsList extends StatefulWidget {
   const AdminPetsList({Key? key}) : super(key: key);
@@ -11,7 +12,7 @@ class AdminPetsList extends StatefulWidget {
 
 class _AdminPetsListState extends State<AdminPetsList> {
   List<dynamic> _pets = [];
-  bool _isLoading = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -23,7 +24,7 @@ class _AdminPetsListState extends State<AdminPetsList> {
     setState(() => _isLoading = true);
     try {
       final response = await http.get(
-        Uri.parse('https://greatmintwave90.conveyor.cloud/api/Pet'),
+        Uri.parse('${Config_URL.baseUrl}Pet'),
       );
       if (response.statusCode == 200) {
         setState(() {
@@ -31,7 +32,7 @@ class _AdminPetsListState extends State<AdminPetsList> {
           _isLoading = false;
         });
       } else {
-        throw Exception('Failed to load pets');
+        throw Exception('Failed to load pets. Status code: ${response.statusCode}');
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -44,7 +45,7 @@ class _AdminPetsListState extends State<AdminPetsList> {
   Future<void> _deletePet(int petId) async {
     try {
       final response = await http.delete(
-        Uri.parse('https://greatmintwave90.conveyor.cloud/api/Pet/$petId'),
+        Uri.parse('${Config_URL.baseUrl}Pet/$petId'),
       );
       if (response.statusCode == 200) {
         setState(() {
@@ -54,7 +55,7 @@ class _AdminPetsListState extends State<AdminPetsList> {
           const SnackBar(content: Text('Pet deleted successfully!')),
         );
       } else {
-        throw Exception('Failed to delete pet');
+        throw Exception('Failed to delete pet. Status code: ${response.statusCode}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -88,7 +89,22 @@ class _AdminPetsListState extends State<AdminPetsList> {
         itemCount: _pets.length,
         itemBuilder: (context, index) {
           final pet = _pets[index];
+          final imageUrl = (pet['images'] != null && pet['images'].isNotEmpty)
+              ? pet['images'][0]['url']
+              : null;
+
           return ListTile(
+            leading: imageUrl != null
+                ? Image.network(
+              imageUrl,
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return _buildPlaceholder();
+              },
+            )
+                : _buildPlaceholder(),
             title: Text(pet['name']),
             subtitle: Text('Mô tả: ${pet['description']}'),
             trailing: Row(
@@ -96,15 +112,11 @@ class _AdminPetsListState extends State<AdminPetsList> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.green),
-                  onPressed: () {
-                    _addOrEditPet(pet: pet);
-                  },
+                  onPressed: () => _addOrEditPet(pet: pet),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () {
-                    _deletePet(pet['petId']);
-                  },
+                  onPressed: () => _deletePet(pet['petId']),
                 ),
               ],
             ),
@@ -112,11 +124,24 @@ class _AdminPetsListState extends State<AdminPetsList> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _addOrEditPet();
-        },
+        onPressed: () => _addOrEditPet(),
         child: const Icon(Icons.add),
         backgroundColor: Colors.blue,
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Icon(
+        Icons.pets,
+        color: Colors.grey,
       ),
     );
   }
@@ -148,7 +173,7 @@ class _AddOrEditPetScreenState extends State<AddOrEditPetScreen> {
     _descriptionController = TextEditingController(text: widget.pet?['description'] ?? '');
     _imageController = TextEditingController(
       text: widget.pet?['images']?.isNotEmpty == true
-          ? widget.pet!['images'][0]['imageUrl']
+          ? widget.pet!['images'][0]['url']
           : '',
     );
   }
@@ -158,21 +183,33 @@ class _AddOrEditPetScreenState extends State<AddOrEditPetScreen> {
 
     final isEditing = widget.pet != null;
     final url = isEditing
-        ? Uri.parse(
-        'https://greatmintwave90.conveyor.cloud/api/Pet/${widget.pet!['petId']}')
-        : Uri.parse('https://greatmintwave90.conveyor.cloud/api/Pet');
+        ? Uri.parse('${Config_URL.baseUrl}Pet/${widget.pet!['petId']}')
+        : Uri.parse('${Config_URL.baseUrl}Pet');
 
     final petData = {
+      'petId': isEditing ? widget.pet!['petId'] : 0,
       'name': _nameController.text,
       'age': int.parse(_ageController.text),
       'price': double.parse(_priceController.text),
       'description': _descriptionController.text,
+      'categoryId': 1, // Giá trị mặc định hoặc theo user nhập
       'images': [
-        {'imageUrl': _imageController.text}
+        {
+          'id': isEditing ? widget.pet!['images'][0]['id'] : 0,
+          'petId': isEditing ? widget.pet!['petId'] : 0,
+          'imageUrl': _imageController.text.isNotEmpty ? _imageController.text : null,
+        }
       ],
-      'status': 1, // Default status
-      'categoryId': 1 // Default category ID
+      'status': isEditing ? widget.pet!['status'] : 'Available',
     };
+
+    // Kiểm tra nếu imageUrl bị null hoặc trống
+    if (petData['images'][0]['imageUrl'] == null || petData['images'][0]['imageUrl']!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('URL ảnh không được để trống!')),
+      );
+      return;
+    }
 
     try {
       final response = isEditing
@@ -190,14 +227,16 @@ class _AddOrEditPetScreenState extends State<AddOrEditPetScreen> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         Navigator.pop(context, true);
       } else {
-        throw Exception('Failed to save pet: ${response.body}');
+        throw Exception(
+            'Failed to save pet. Status code: ${response.statusCode}\nBody: ${response.body}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error saving pet: $e')),
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -210,50 +249,47 @@ class _AddOrEditPetScreenState extends State<AddOrEditPetScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Tên thú cưng'),
-                validator: (value) =>
-                value!.isEmpty ? 'Tên không được để trống' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _ageController,
-                decoration: const InputDecoration(labelText: 'Tuổi'),
-                keyboardType: TextInputType.number,
-                validator: (value) =>
-                value!.isEmpty ? 'Tuổi không được để trống' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _priceController,
-                decoration: const InputDecoration(labelText: 'Giá'),
-                keyboardType: TextInputType.number,
-                validator: (value) =>
-                value!.isEmpty ? 'Giá không được để trống' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Mô tả'),
-                validator: (value) =>
-                value!.isEmpty ? 'Mô tả không được để trống' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _imageController,
-                decoration: const InputDecoration(labelText: 'URL Ảnh'),
-                validator: (value) =>
-                value!.isEmpty ? 'URL ảnh không được để trống' : null,
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: Text(widget.pet != null ? 'Cập nhật' : 'Thêm mới'),
-              ),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: 'Tên thú cưng'),
+                  validator: (value) => value!.isEmpty ? 'Tên không được để trống' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _ageController,
+                  decoration: const InputDecoration(labelText: 'Tuổi'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) => value!.isEmpty ? 'Tuổi không được để trống' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _priceController,
+                  decoration: const InputDecoration(labelText: 'Giá'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) => value!.isEmpty ? 'Giá không được để trống' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(labelText: 'Mô tả'),
+                  validator: (value) => value!.isEmpty ? 'Mô tả không được để trống' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _imageController,
+                  decoration: const InputDecoration(labelText: 'URL Ảnh'),
+                  validator: (value) => value!.isEmpty ? 'URL ảnh không được để trống' : null,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: _submitForm,
+                  child: Text(widget.pet != null ? 'Cập nhật' : 'Thêm mới'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

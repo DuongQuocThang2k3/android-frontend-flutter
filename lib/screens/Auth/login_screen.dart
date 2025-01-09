@@ -71,10 +71,11 @@ class _LoginScreenState extends State<LoginScreen> {
       UserModel user = UserModel.fromJson(userInfo);
       await prefs.setString('user_info', json.encode(user.toJson())); // Lưu thông tin người dùng dưới dạng JSON
 
-      // Điều hướng đến MainScreen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => const MainScreen(),
+        ),
+            (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
       );
     } else {
       String errorMessage = result['message'] ?? 'Tên đăng nhập hoặc mật khẩu không đúng';

@@ -6,7 +6,7 @@ import 'package:the_cherry_pet_shop/screens/video_screen.dart';
 import 'package:the_cherry_pet_shop/screens/map_screen.dart'; // Import màn hình MapHere
 import 'home_screen.dart';
 import 'account_screen.dart';
-import 'admin_screen.dart';
+import 'admin/admin_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
