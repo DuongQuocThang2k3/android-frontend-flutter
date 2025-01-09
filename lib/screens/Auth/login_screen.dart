@@ -4,9 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_cherry_pet_shop/screens/main_screen.dart';
 import 'package:the_cherry_pet_shop/utils/auth.dart';
 import '../../models/user_model.dart';
-import '../../core/route/app_route_name.dart';
 import 'forgot_password_screen.dart';
-
 import 'registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -25,15 +23,16 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _checkToken(); // Kiểm tra token khi mở màn hình
+    _checkLoginStatus();
   }
 
-  // Kiểm tra token trong SharedPreferences và điều hướng nếu có token
-  Future<void> _checkToken() async {
+  // Kiểm tra trạng thái đăng nhập
+  Future<void> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('jwt_token');
+    String? username = prefs.getString('userId'); // Lấy giá trị username từ SharedPreferences
 
-    if (token != null) {
+    if (username != null) {
+      // Nếu đã đăng nhập, chuyển hướng đến MainScreen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),
@@ -55,6 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
+    // Gửi yêu cầu đăng nhập tới API
     Map<String, dynamic> result = await Auth.login(
       _usernameController.text,
       _passwordController.text,
@@ -64,12 +64,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result['success'] == true) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('jwt_token', result['token']); // Lưu token vào SharedPreferences
 
-      // Lưu thông tin người dùng
-      Map<String, dynamic> userInfo = Auth.decodeToken(result['token']);
-      UserModel user = UserModel.fromJson(userInfo);
-      await prefs.setString('user_info', json.encode(user.toJson())); // Lưu thông tin người dùng dưới dạng JSON
+      // Lưu username vào SharedPreferences
+      String username = _usernameController.text; // Dùng username từ form đăng nhập
+      await prefs.setString('userId', username); // Lưu username (userId)
+
+      print("User ID đã lưu: $username"); // In log kiểm tra
 
       // Điều hướng đến MainScreen
       Navigator.pushReplacement(
@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
                 TextField(
                   controller: _usernameController,
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     hintText: 'Tên đăng nhập',
                     filled: true,
@@ -201,48 +201,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Quên mật khẩu? "),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ForgotPasswordScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Khôi phục ngay',
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 20),
                 Image.asset(
                   'assets/nen-pet.png',
                   height: 230,
                   width: 230,
                   fit: BoxFit.cover,
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRouteName.home,
-                    );
-                  },
-                  child: const Text(
-                    "Quay về trang chủ",
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
               ],
             ),

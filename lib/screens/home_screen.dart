@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: CategoryWidget(),
           ),
           const SliverToBoxAdapter(
-            child: PopularProductWidget(),
+            child: PopularServiceWidget(),
           ),
           const SliverToBoxAdapter(
             child: ShopWidget(),

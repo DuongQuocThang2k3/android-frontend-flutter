@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:the_cherry_pet_shop/utils/auth.dart';
-
+import 'login_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -72,7 +72,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -236,6 +235,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         : const Text(
                       'Đăng ký',
                       style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Quay lại màn hình đăng nhập
+                    },
+                    child: const Text(
+                      'Quay lại đăng nhập',
+                      style: TextStyle(
+                        color: Colors.blue,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
