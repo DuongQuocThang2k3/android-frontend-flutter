@@ -5,6 +5,7 @@ import 'package:the_cherry_pet_shop/config/config_url.dart';
 import '../../models/pet_service_model.dart';
 import '../apoinment/ServiceDetailScreen.dart';
 
+
 class PopularServiceWidget extends StatefulWidget {
   const PopularServiceWidget({Key? key}) : super(key: key);
 
@@ -25,16 +26,20 @@ class _PopularServiceWidgetState extends State<PopularServiceWidget> {
     final String apiUrl = '${Config_URL.baseUrl}Service';
     try {
       final response = await http.get(Uri.parse(apiUrl));
+      print('API Response: ${response.body}'); // In ra dữ liệu trả về từ API
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
+        print('Parsed Data: $data'); // In ra dữ liệu đã parse
         return data.map((json) => PetService.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load services with status: ${response.statusCode}');
       }
     } catch (e) {
+      print('Error: $e'); // In ra lỗi nếu có
       throw Exception('Failed to load services: $e');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

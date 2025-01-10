@@ -24,8 +24,9 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   Future<void> _loadUserId() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId');
+    print("User ID được lấy: $userId");
     setState(() {
-      _userId = userId;
+      _userId = userId; // Gán userId
     });
   }
 
@@ -40,7 +41,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
         centerTitle: true,
         backgroundColor: Colors.blue,
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,11 +53,9 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
-                  image: NetworkImage(
-                    widget.service.images.isNotEmpty
-                        ? widget.service.images[0].url
-                        : 'https://via.placeholder.com/250x250',
-                  ),
+                  image: NetworkImage(widget.service.images.isNotEmpty
+                      ? widget.service.images[0].url
+                      : 'https://via.placeholder.com/250x250'),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -70,14 +69,14 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             const SizedBox(height: 12),
             // Giá tiền
             Text(
-              'Giá: ${widget.service.price.toStringAsFixed(0)} VND',
+              'Giá: ${widget.service.price} VND',
               style: const TextStyle(fontSize: 18, color: Colors.green),
             ),
             const SizedBox(height: 12),
             // Mô tả dịch vụ
-            const Text(
+            Text(
               'Mô tả:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -91,6 +90,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               child: ElevatedButton(
                 onPressed: _userId != null
                     ? () {
+                  print("User ID hợp lệ: $_userId");
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -101,7 +101,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                     ),
                   );
                 }
-                    : null,
+                    : null, // Vô hiệu hóa nếu userId chưa được tải
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.all(16),
                   backgroundColor: Colors.blue,

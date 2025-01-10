@@ -4,9 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_cherry_pet_shop/screens/main_screen.dart';
 import 'package:the_cherry_pet_shop/utils/auth.dart';
 import '../../models/user_model.dart';
-import '../../core/route/app_route_name.dart';
 import 'forgot_password_screen.dart';
-
 import 'registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -25,18 +23,19 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _checkToken(); // Kiểm tra token khi mở màn hình
+    _checkLoginStatus();
   }
 
-  // Kiểm tra token trong SharedPreferences và điều hướng nếu có token
-  Future<void> _checkToken() async {
+  // Kiểm tra trạng thái đăng nhập bằng token hoặc username
+  Future<void> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
+    String? username = prefs.getString('userId'); // Lấy username đã lưu
 
-    if (token != null) {
-      Navigator.pushReplacement(
-        context,
+    if (token != null || username != null) {
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainScreen()),
+            (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
       );
     }
   }
@@ -55,7 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    // Gọi API đăng nhập
     Map<String, dynamic> result = await Auth.login(
       _usernameController.text,
       _passwordController.text,
@@ -69,28 +67,24 @@ class _LoginScreenState extends State<LoginScreen> {
       // Lưu token vào SharedPreferences
       await prefs.setString('jwt_token', result['token']);
 
-      // Lưu username vào SharedPreferences
+      // Lưu username (userId) vào SharedPreferences
       await prefs.setString('username', _usernameController.text);
 
-      // Giải mã token và lưu thông tin người dùng
+      await prefs.setString('userId', _usernameController.text);
+
+      // Lưu thông tin người dùng
       Map<String, dynamic> userInfo = Auth.decodeToken(result['token']);
       UserModel user = UserModel.fromJson(userInfo);
-
-      // Lưu `UserModel` vào SharedPreferences
       await prefs.setString('user_info', json.encode(user.toJson()));
 
-      // Đặt `UserModel.currentUser`
-      UserModel.setCurrentUser(user);
+      print("User ID đã lưu: ${_usernameController.text}"); // Log kiểm tra
 
-      // Chuyển đến MainScreen
+      // Điều hướng đến MainScreen
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const MainScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const MainScreen()),
             (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
       );
     } else {
-      // Xử lý khi đăng nhập thất bại
       String errorMessage = result['message'] ?? 'Tên đăng nhập hoặc mật khẩu không đúng';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -100,8 +94,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               children: [
-                const SizedBox(height: 30),
+                const SizedBox(height: 60),
                 Text(
                   'The Cherry PetShop',
                   textAlign: TextAlign.center,
@@ -126,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
                 TextField(
                   controller: _usernameController,
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     hintText: 'Tên đăng nhập',
                     filled: true,
@@ -223,7 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text("Quên mật khẩu? "),
                     TextButton(
                       onPressed: () {
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                             builder: (context) => ForgotPasswordScreen(),
@@ -240,25 +232,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
                 Image.asset(
                   'assets/nen-pet.png',
-                  height: 230,
-                  width: 230,
+                  height: 200,
+                  width: 200,
                   fit: BoxFit.cover,
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRouteName.home,
-                    );
-                  },
-                  child: const Text(
-                    "Quay về trang chủ",
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
               ],
             ),
