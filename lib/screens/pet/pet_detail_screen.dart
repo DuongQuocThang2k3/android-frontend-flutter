@@ -5,7 +5,6 @@ import '../Auth/login_screen.dart';
 import '../payment_detail/payment_detail_screen.dart';
 import '../payment_detail/shopping_cart_screen.dart';
 
-
 class PetDetailScreen extends StatelessWidget {
   final Map<String, dynamic> pet;
 
@@ -136,6 +135,7 @@ class PetDetailScreen extends StatelessWidget {
               onPressed: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 String? token = prefs.getString('jwt_token');
+                String username = prefs.getString('username') ?? 'guest_user';
 
                 if (token == null) {
                   // Nếu chưa đăng nhập
@@ -167,7 +167,6 @@ class PetDetailScreen extends StatelessWidget {
                       builder: (context) => PaymentScreen(
                         productName: pet['name'] ?? 'Tên sản phẩm',
                         price: double.tryParse(pet['price'].toString()) ?? 0.0,
-                        userName: name,
                         userPhone: phone,
                         userAddress: address,
                       ),
@@ -175,6 +174,7 @@ class PetDetailScreen extends StatelessWidget {
                   );
                 }
               },
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 padding: const EdgeInsets.all(16.0),

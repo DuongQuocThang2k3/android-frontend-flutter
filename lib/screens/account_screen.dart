@@ -14,11 +14,13 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   bool isLoggedIn = false; // Trạng thái đăng nhập
   UserModel? userModel; // Model lưu thông tin người dùng
+  String? _username; // Username từ SharedPreferences
 
   @override
   void initState() {
     super.initState();
     _checkLoginStatus();
+    _loadUsername();
   }
 
   // Kiểm tra trạng thái đăng nhập
@@ -39,6 +41,14 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  // Lấy username từ SharedPreferences
+  Future<void> _loadUsername() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _username = prefs.getString('username') ?? 'Unknown';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!isLoggedIn) {
@@ -56,6 +66,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
                 ).then((_) {
                   _checkLoginStatus(); // Kiểm tra lại trạng thái sau khi đăng nhập
+                  _loadUsername(); // Lấy lại username
                 });
               },
               child: const Text('Đăng nhập'),
@@ -93,14 +104,14 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Hiển thị thông tin username
+            // Hiển thị thông tin username từ SharedPreferences
             ListTile(
               leading: const Icon(Icons.account_circle, color: Colors.blueAccent),
-              title: const Text('Tên đăng nhập'),
-              subtitle: Text(userModel?.username ?? 'Không có thông tin'),
+              title: const Text('Tên tài khoản'),
+              subtitle: Text(_username ?? 'Không có thông tin'),
             ),
 
-            // Hiển thị thông tin role
+            // Hiển thị thông tin role từ UserModel
             ListTile(
               leading: const Icon(Icons.admin_panel_settings, color: Colors.blueAccent),
               title: const Text('Vai trò'),

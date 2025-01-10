@@ -5,7 +5,6 @@ import 'package:the_cherry_pet_shop/config/config_url.dart';
 import '../../models/pet_service_model.dart';
 import '../apoinment/ServiceDetailScreen.dart';
 
-
 class PopularServiceWidget extends StatefulWidget {
   const PopularServiceWidget({Key? key}) : super(key: key);
 

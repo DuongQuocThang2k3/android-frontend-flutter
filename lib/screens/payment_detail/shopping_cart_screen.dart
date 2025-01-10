@@ -59,6 +59,7 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
   Future<Map<String, String>> _getUserInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return {
+      'username': prefs.getString('username') ?? 'guest_user',
       'name': prefs.getString('name') ?? 'Người dùng',
       'phone': prefs.getString('phone') ?? 'Chưa cập nhật',
       'address': prefs.getString('address') ?? 'Chưa cập nhật',
@@ -108,7 +109,8 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
                         icon: const Icon(Icons.add_circle_outline),
                         onPressed: () {
                           setState(() {
-                            item['quantity'] = (item['quantity'] ?? 1) + 1;
+                            item['quantity'] =
+                                (item['quantity'] ?? 1) + 1;
                             _updateCart();
                           });
                         },
@@ -143,7 +145,6 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
                         builder: (context) => PaymentScreen(
                           productName: 'Giỏ hàng', // Tên chung cho giỏ hàng
                           price: _calculateTotalPrice(),
-                          userName: userInfo['name']!,
                           userPhone: userInfo['phone']!,
                           userAddress: userInfo['address']!,
                         ),
@@ -159,10 +160,10 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
                   ),
                   child: const Text(
                     'THANH TOÁN',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
+
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _clearCart,

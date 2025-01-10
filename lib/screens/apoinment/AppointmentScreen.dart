@@ -37,7 +37,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
     final appointment = Appointment(
       userId: widget.userId,
-      serviceId: widget.service.serviceId,
+      serviceId: widget.service.serviceId, // Nếu serviceId không tồn tại, hãy thêm vào PetService
       appointmentDate: appointmentDate.toIso8601String(),
       status: "Pending",
     );
@@ -115,12 +115,17 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              "Giá: ${widget.service.price} VND",
+              "Giá: ${widget.service.price.toStringAsFixed(0)} VND",
               style: const TextStyle(fontSize: 16, color: Colors.green),
             ),
             const SizedBox(height: 16),
             Text(
-              "Mô tả: ${widget.service.description}",
+              "Mô tả:",
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.service.description ?? "Không có mô tả", // Đảm bảo không bị lỗi null
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),

@@ -1,7 +1,7 @@
 class PetService {
-  final int serviceId;
+  final int serviceId; // Thêm serviceId
   final String name;
-  final int price;
+  final double price;
   final String description;
   final List<ServiceImage> images;
 
@@ -13,15 +13,17 @@ class PetService {
     required this.images,
   });
 
+  // Factory từ JSON
   factory PetService.fromJson(Map<String, dynamic> json) {
     return PetService(
-      serviceId: json['serviceId'],
-      name: json['name'],
-      price: json['price'],
-      description: json['description'],
-      images: (json['images'] as List)
-          .map((image) => ServiceImage.fromJson(image))
-          .toList(),
+      serviceId: json['serviceId'] ?? 0, // Gán giá trị mặc định nếu null
+      name: json['name'] ?? '',
+      price: (json['price'] is int) ? (json['price'] as int).toDouble() : (json['price'] ?? 0.0),
+      description: json['description'] ?? 'Không có mô tả',
+      images: (json['images'] as List<dynamic>?)
+          ?.map((imageJson) => ServiceImage.fromJson(imageJson))
+          .toList() ??
+          [],
     );
   }
 }
@@ -37,11 +39,12 @@ class ServiceImage {
     required this.serviceId,
   });
 
+  // Factory từ JSON
   factory ServiceImage.fromJson(Map<String, dynamic> json) {
     return ServiceImage(
-      id: json['id'],
-      url: json['url'],
-      serviceId: json['serviceId'],
+      id: json['id'] ?? 0,
+      url: json['url'] ?? '',
+      serviceId: json['serviceId'] ?? 0,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../admin/admin_petslist.dart';
 import '../admin/admin_productlist.dart';
 import '../admin/admin_service.dart';
+import 'admin_order_list.dart';
 import 'admin_user_list.dart'; // Import UserList
 
 class AdminScreen extends StatelessWidget {
@@ -67,6 +68,20 @@ class AdminScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const AdminUserList(),
+                ),
+              );
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.people, color: Colors.purple),
+            title: const Text('Quản lý Danh sách Order',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminOrderList(),
                 ),
               );
             },

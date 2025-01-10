@@ -55,6 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
+    // Gọi API đăng nhập
     Map<String, dynamic> result = await Auth.login(
       _usernameController.text,
       _passwordController.text,
@@ -64,13 +65,24 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result['success'] == true) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('jwt_token', result['token']); // Lưu token vào SharedPreferences
 
-      // Lưu thông tin người dùng
+      // Lưu token vào SharedPreferences
+      await prefs.setString('jwt_token', result['token']);
+
+      // Lưu username vào SharedPreferences
+      await prefs.setString('username', _usernameController.text);
+
+      // Giải mã token và lưu thông tin người dùng
       Map<String, dynamic> userInfo = Auth.decodeToken(result['token']);
       UserModel user = UserModel.fromJson(userInfo);
-      await prefs.setString('user_info', json.encode(user.toJson())); // Lưu thông tin người dùng dưới dạng JSON
 
+      // Lưu `UserModel` vào SharedPreferences
+      await prefs.setString('user_info', json.encode(user.toJson()));
+
+      // Đặt `UserModel.currentUser`
+      UserModel.setCurrentUser(user);
+
+      // Chuyển đến MainScreen
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => const MainScreen(),
@@ -78,6 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
             (route) => false, // Xóa toàn bộ ngăn xếp điều hướng
       );
     } else {
+      // Xử lý khi đăng nhập thất bại
       String errorMessage = result['message'] ?? 'Tên đăng nhập hoặc mật khẩu không đúng';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -87,6 +100,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
