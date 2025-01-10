@@ -113,12 +113,12 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               children: [
-                const SizedBox(height: 60),
+                const SizedBox(height: 30),
                 Text(
-                  'Pet Shop',
+                  'The Cherry PetShop',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 40,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Colors.blue[700],
                   ),
