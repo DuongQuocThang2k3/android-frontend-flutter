@@ -11,20 +11,22 @@ class LogoutScreen extends StatelessWidget {
   Future<void> _logout(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // Xóa token và thông tin người dùng khỏi SharedPreferences
+    // Xóa toàn bộ trạng thái liên quan đến người dùng
     await prefs.remove('jwt_token');
-    await prefs.remove('user_info'); // Xóa thông tin user_model
+    await prefs.remove('user_info');
+    await prefs.remove('userId'); // Xóa userId nếu được lưu
 
-    // Reset đối tượng userModel về null (nếu đang sử dụng biến toàn cục hoặc quản lý trạng thái)
-    UserModel.currentUser = null; // Đặt lại thông tin người dùng trong model
+    // Reset thông tin người dùng
+    UserModel.currentUser = null;
 
-    // Điều hướng về màn hình đăng nhập sau khi xóa token và thông tin người dùng
+    // Điều hướng về màn hình đăng nhập
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
-          (route) => false, // Xóa tất cả các màn hình trước đó khỏi ngăn xếp
+          (route) => false,
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
