@@ -78,6 +78,13 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> getCurrentLocation() async {
+    // Kiểm tra và yêu cầu quyền trước khi lấy vị trí
+    final hasPermission = await LocationService.checkAndRequestLocationPermission();
+    if (!hasPermission) {
+      _showErrorDialog("Quyền truy cập vị trí bị từ chối. Vui lòng cấp quyền để tiếp tục.");
+      return;
+    }
+
     final position = await LocationService.getCurrentLocation();
     if (position != null) {
       setState(() {
@@ -96,6 +103,8 @@ class _MapScreenState extends State<MapScreen> {
         mapController.move(LatLng(position.latitude, position.longitude), 13.0);
         polylinePoints.add(LatLng(position.latitude, position.longitude));
       });
+    } else {
+      _showErrorDialog("Không thể lấy vị trí hiện tại. Vui lòng kiểm tra dịch vụ định vị.");
     }
   }
 
