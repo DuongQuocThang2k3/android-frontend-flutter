@@ -2,16 +2,18 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../config/config_url.dart';
-import '../../models/product_model_02.dart';
-import 'product_detail_screen.dart';
 import '../../models/product_model.dart';
+import 'product_detail_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
-  final int categoryId;
+  final int supplyCategoryId;
   final String categoryName;
 
-  const ProductListScreen({Key? key, required this.categoryId, required this.categoryName})
-      : super(key: key);
+  const ProductListScreen({
+    Key? key,
+    required this.supplyCategoryId,
+    required this.categoryName,
+  }) : super(key: key);
 
   @override
   State<ProductListScreen> createState() => _ProductListScreenState();
@@ -23,25 +25,29 @@ class _ProductListScreenState extends State<ProductListScreen> {
   @override
   void initState() {
     super.initState();
-    _products = _fetchProductsByCategory(widget.categoryId);
+    _products = _fetchProductsByCategory(widget.supplyCategoryId);
   }
 
-  Future<List<Product>> _fetchProductsByCategory(int categoryId) async {
+  Future<List<Product>> _fetchProductsByCategory(int supplyCategoryId) async {
     try {
       final response = await http.get(Uri.parse('${Config_URL.baseUrl}Product'));
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
+        print("Fetched products: $data"); // Log dữ liệu
         return data
             .map((json) => Product.fromJson(json))
-            .where((product) => product.supplyCategory.supplyCategoryId == categoryId)
+            .where((product) =>
+        product.supplyCategory.supplyCategoryId == supplyCategoryId)
             .toList();
       } else {
         throw Exception('Failed to load products');
       }
     } catch (e) {
+      print("Error loading products: $e");
       throw Exception('Failed to load products: $e');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

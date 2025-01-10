@@ -32,7 +32,7 @@ class CategoryWidget extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => ProductListScreen(
-                        categoryId: int.parse(categories[index].id),
+                        supplyCategoryId: int.parse(categories[index].id),
                         categoryName: categories[index].name,
                       ),
                     ),
@@ -59,7 +59,7 @@ class CategoryWidget extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleSmall,
                         textAlign: TextAlign.center,
                         maxLines: 2,
-                      )
+                      ),
                     ],
                   ),
                 ),

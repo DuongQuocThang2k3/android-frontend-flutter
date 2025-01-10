@@ -1,46 +1,70 @@
-class ProductModel {
-  final String image;
-  final String brand;
+class Product {
+  final int productId;
   final String name;
-  final String rating;
-  final String price;
+  final double price; // Hỗ trợ cả double và int
+  final String description;
+  final int quantity;
+  final SupplyCategory supplyCategory;
+  final List<ProductImage> images;
 
-  const ProductModel({
-    required this.image,
-    required this.brand,
+  Product({
+    required this.productId,
     required this.name,
-    required this.rating,
     required this.price,
+    required this.description,
+    required this.quantity,
+    required this.supplyCategory,
+    required this.images,
   });
+
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
+      productId: json['productId'] ?? 0,
+      name: json['name'] ?? '',
+      price: json['price'] is int
+          ? (json['price'] as int).toDouble()
+          : (json['price'] ?? 0.0), // Đảm bảo hỗ trợ cả int và double
+      description: json['description'] ?? '',
+      quantity: json['quantity'] ?? 0,
+      supplyCategory: SupplyCategory.fromJson(json['supplyCategory'] ?? {}),
+      images: (json['images'] as List<dynamic>?)
+          ?.map((image) => ProductImage.fromJson(image))
+          .toList() ??
+          [],
+    );
+  }
 }
 
-const products = [
-  ProductModel(
-    image: "assets/img_cat_dog_bed.jpg",
-    brand: "Frisco",
-    name: "Giường vuông cho mèo & chó, màu nâu, cỡ lớn",
-    rating: "4.5",
-    price: "45.000 VND",
-  ),
-  ProductModel(
-    image: "assets/img_cat_condo.jpg",
-    brand: "Frisco",
-    name: "Cây và nhà cho mèo, cao 52 inch, màu nâu",
-    rating: "4.5",
-    price: "125.000 VND",
-  ),
-  ProductModel(
-    image: "assets/img_dog_toy.jpg",
-    brand: "Frisco",
-    name: "Đồ chơi hình shamrock phát tiếng kêu, 3 món",
-    rating: "4.5",
-    price: "70.000 VND",
-  ),
-  ProductModel(
-    image: "assets/img_dog_bowl.jpg",
-    brand: "Frisco",
-    name: "Bát silicone gấp gọn cho chó & mèo, màu xám, 3 cốc",
-    rating: "4.5",
-    price: "37.000 VND",
-  )
-];
+class SupplyCategory {
+  final int supplyCategoryId;
+  final String name;
+
+  SupplyCategory({
+    required this.supplyCategoryId,
+    required this.name,
+  });
+
+  factory SupplyCategory.fromJson(Map<String, dynamic> json) {
+    return SupplyCategory(
+      supplyCategoryId: json['supplyCategoryId'] ?? 0,
+      name: json['name'] ?? '',
+    );
+  }
+}
+
+class ProductImage {
+  final int productImageId;
+  final String imageUrl;
+
+  ProductImage({
+    required this.productImageId,
+    required this.imageUrl,
+  });
+
+  factory ProductImage.fromJson(Map<String, dynamic> json) {
+    return ProductImage(
+      productImageId: json['productImageId'] ?? 0,
+      imageUrl: json['imageUrl'] ?? '',
+    );
+  }
+}
