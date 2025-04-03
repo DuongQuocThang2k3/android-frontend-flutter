@@ -9,7 +9,7 @@ class AppointmentScreen extends StatefulWidget {
   final PetService service;
   final String userId;
 
-  const AppointmentScreen({Key? key, required this.service, required this.userId}) : super(key: key);
+  const AppointmentScreen({super.key, required this.service, required this.userId});
 
   @override
   State<AppointmentScreen> createState() => _AppointmentScreenState();

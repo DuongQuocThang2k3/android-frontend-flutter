@@ -16,7 +16,7 @@ class AppTheme {
       primarySwatch: AppColor.primarySwatch,
     ).copyWith(
       brightness: Brightness.light,
-      background: AppColor.backgroundWhite,
+      surface: AppColor.backgroundWhite,
     ),
   );
 
@@ -29,7 +29,7 @@ class AppTheme {
       primarySwatch: AppColor.primarySwatch,
     ).copyWith(
       brightness: Brightness.dark,
-      background: AppColor.backgroundBlack,
+      surface: AppColor.backgroundBlack,
     ),
   );
 

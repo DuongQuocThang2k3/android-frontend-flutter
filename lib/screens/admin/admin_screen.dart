@@ -8,7 +8,7 @@ import 'admin_role.dart'; // Import file AdminRolePage
 import 'user_role.dart'; // Import file UserRolePage
 
 class AdminScreen extends StatelessWidget {
-  const AdminScreen({Key? key}) : super(key: key);
+  const AdminScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

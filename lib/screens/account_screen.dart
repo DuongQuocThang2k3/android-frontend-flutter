@@ -69,11 +69,11 @@ class _AccountScreenState extends State<AccountScreen> {
                   _loadUsername(); // Lấy lại username
                 });
               },
-              child: const Text('Đăng nhập'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
                 padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
               ),
+              child: const Text('Đăng nhập'),
             ),
           ),
         ),

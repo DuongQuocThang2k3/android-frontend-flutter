@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../config/config_url.dart';
 
 class AdminProductList extends StatefulWidget {
-  const AdminProductList({Key? key}) : super(key: key);
+  const AdminProductList({super.key});
 
   @override
   State<AdminProductList> createState() => _AdminProductListState();
@@ -145,8 +145,8 @@ class _AdminProductListState extends State<AdminProductList> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addOrEditProduct(),
-        child: const Icon(Icons.add),
         backgroundColor: Colors.blue,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -155,7 +155,7 @@ class _AdminProductListState extends State<AdminProductList> {
 class AddOrEditProductScreen extends StatefulWidget {
   final Map<String, dynamic>? product;
 
-  const AddOrEditProductScreen({Key? key, this.product}) : super(key: key);
+  const AddOrEditProductScreen({super.key, this.product});
 
   @override
   State<AddOrEditProductScreen> createState() => _AddOrEditProductScreenState();

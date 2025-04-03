@@ -8,6 +8,8 @@ import 'dart:convert';
 import '../services/location_service.dart';
 
 class MapScreen extends StatefulWidget {
+  const MapScreen({super.key});
+
   @override
   _MapScreenState createState() => _MapScreenState();
 }
@@ -16,7 +18,7 @@ class _MapScreenState extends State<MapScreen> {
   final String geoapifyApiKey = "e5468ede2f0d4c96b0996c13d69f58bc";
   late MapController mapController;
   List<Marker> markers = [];
-  LatLng mapCenter = LatLng(10.843312, 106.788597); // Địa chỉ shop mặc định
+  LatLng mapCenter = const LatLng(10.843312, 106.788597); // Địa chỉ shop mặc định
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _searchResults = [];
   Timer? _debounce;
@@ -39,12 +41,12 @@ class _MapScreenState extends State<MapScreen> {
             Positioned(
               top: -30,
               child: Container(
-                constraints: BoxConstraints(maxWidth: 150),
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                constraints: const BoxConstraints(maxWidth: 150),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.black87,
                   borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 4,
@@ -52,7 +54,7 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                   ],
                 ),
-                child: Text(
+                child: const Text(
                   "Cherry the Pet Shop",
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -65,7 +67,7 @@ class _MapScreenState extends State<MapScreen> {
                 ),
               ),
             ),
-            Icon(
+            const Icon(
               Icons.location_on,
               color: Colors.black,
               size: 40.0,
@@ -93,7 +95,7 @@ class _MapScreenState extends State<MapScreen> {
         markers.add(
           Marker(
             point: LatLng(position.latitude, position.longitude),
-            builder: (ctx) => Icon(
+            builder: (ctx) => const Icon(
               Icons.my_location,
               color: Colors.blue,
               size: 40.0,
@@ -111,7 +113,7 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> searchLocation(String query) async {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(Duration(milliseconds: 300), () async {
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
       if (query.isEmpty) {
         setState(() {
           _searchResults = [];
@@ -158,7 +160,7 @@ class _MapScreenState extends State<MapScreen> {
       markers.add(
         Marker(
           point: LatLng(lat, lon),
-          builder: (ctx) => Icon(
+          builder: (ctx) => const Icon(
             Icons.location_on,
             color: Colors.red,
             size: 40.0,
@@ -187,12 +189,12 @@ class _MapScreenState extends State<MapScreen> {
               Positioned(
                 top: -30,
                 child: Container(
-                  constraints: BoxConstraints(maxWidth: 150),
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  constraints: const BoxConstraints(maxWidth: 150),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.black87,
                     borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: Colors.black26,
                         blurRadius: 4,
@@ -200,7 +202,7 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                     ],
                   ),
-                  child: Text(
+                  child: const Text(
                     "Cherry the Pet Shop",
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -213,7 +215,7 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.location_on,
                 color: Colors.black,
                 size: 40.0,
@@ -228,7 +230,7 @@ class _MapScreenState extends State<MapScreen> {
 
       // Hiển thị SnackBar thông báo
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Đã reset bản đồ về vị trí Cherry the Pet Shop."),
           duration: Duration(seconds: 2),
         ),
@@ -240,11 +242,11 @@ class _MapScreenState extends State<MapScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text("Lỗi"),
+        title: const Text("Lỗi"),
         content: Text(message),
         actions: [
           TextButton(
-            child: Text("OK"),
+            child: const Text("OK"),
             onPressed: () {
               Navigator.of(ctx).pop();
             },
@@ -258,7 +260,7 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Geoapify Map Tracking"),
+        title: const Text("Geoapify Map Tracking"),
       ),
       body: Stack(
         children: [
@@ -273,7 +275,7 @@ class _MapScreenState extends State<MapScreen> {
                   markers.add(
                     Marker(
                       point: latlng,
-                      builder: (ctx) => Icon(
+                      builder: (ctx) => const Icon(
                         Icons.location_on,
                         color: Colors.green,
                         size: 40.0,
@@ -311,7 +313,7 @@ class _MapScreenState extends State<MapScreen> {
                 TextField(
                   controller: _searchController,
                   onChanged: (value) => searchLocation(value),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Nhập địa chỉ",
                     border: OutlineInputBorder(),
                     filled: true,
@@ -346,7 +348,7 @@ class _MapScreenState extends State<MapScreen> {
             child: FloatingActionButton(
               onPressed: getCurrentLocation,
               backgroundColor: Colors.blue,
-              child: Icon(Icons.my_location, color: Colors.white),
+              child: const Icon(Icons.my_location, color: Colors.white),
             ),
           ),
           Positioned(
@@ -355,7 +357,7 @@ class _MapScreenState extends State<MapScreen> {
             child: FloatingActionButton(
               onPressed: resetMap,
               backgroundColor: Colors.red,
-              child: Column(
+              child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.refresh, color: Colors.white),
@@ -371,11 +373,11 @@ class _MapScreenState extends State<MapScreen> {
             bottom: 20,
             right: 20,
             child: Container(
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: Colors.black26,
                     blurRadius: 4,
@@ -387,7 +389,7 @@ class _MapScreenState extends State<MapScreen> {
                 displayedCoordinates != null
                     ? "Lat: ${displayedCoordinates!.latitude.toStringAsFixed(6)}\nLng: ${displayedCoordinates!.longitude.toStringAsFixed(6)}"
                     : "Chưa có tọa độ",
-                style: TextStyle(fontSize: 14),
+                style: const TextStyle(fontSize: 14),
                 textAlign: TextAlign.center,
               ),
             ),

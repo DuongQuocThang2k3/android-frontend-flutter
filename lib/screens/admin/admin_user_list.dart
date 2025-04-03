@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../config/config_url.dart';
 
 class AdminUserList extends StatefulWidget {
-  const AdminUserList({Key? key}) : super(key: key);
+  const AdminUserList({super.key});
 
   @override
   _AdminUserListState createState() => _AdminUserListState();

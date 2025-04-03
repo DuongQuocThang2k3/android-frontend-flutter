@@ -5,7 +5,7 @@ import '../../models/product_model.dart';
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
 
-  const ProductDetailScreen({Key? key, required this.product}) : super(key: key);
+  const ProductDetailScreen({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +57,9 @@ class ProductDetailScreen extends StatelessWidget {
                     style: const TextStyle(fontSize: 18, color: Colors.blue),
                   ),
                   const SizedBox(height: 12),
-                  Text(
+                  const Text(
                     'Mô tả:',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Text(
                     product.description,

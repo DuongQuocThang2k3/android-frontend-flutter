@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:the_cherry_pet_shop/config/config_url.dart';
 import '../../models/pet_service_model.dart';
-import '../apoinment/ServiceDetailScreen.dart';
+import '../apoinment/servicedetail_screen.dart';
 
 
 class PopularServiceWidget extends StatefulWidget {
-  const PopularServiceWidget({Key? key}) : super(key: key);
+  const PopularServiceWidget({super.key});
 
   @override
   _PopularServiceWidgetState createState() => _PopularServiceWidgetState();
@@ -108,8 +108,8 @@ class _PopularServiceWidgetState extends State<PopularServiceWidget> {
                             Container(
                               width: 220,
                               height: 180,
-                              decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.vertical(
+                              decoration: const BoxDecoration(
+                                borderRadius: BorderRadius.vertical(
                                   top: Radius.circular(16),
                                 ),
                               ),

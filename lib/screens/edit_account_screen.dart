@@ -13,8 +13,8 @@ class EditAccountScreen extends StatefulWidget {
     required this.email,
     required this.phone,
     required this.address,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _EditAccountScreenState createState() => _EditAccountScreenState();
@@ -81,10 +81,10 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
                   'address': _addressController.text,
                 });
               },
-              child: const Text('Lưu thay đổi'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
               ),
+              child: const Text('Lưu thay đổi'),
             ),
           ],
         ),

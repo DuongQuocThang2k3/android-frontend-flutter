@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'payment_detail_screen.dart';
 
 class ShoppingCartScreen extends StatefulWidget {
-  const ShoppingCartScreen({Key? key}) : super(key: key);
+  const ShoppingCartScreen({super.key});
 
   @override
   _ShoppingCartScreenState createState() => _ShoppingCartScreenState();

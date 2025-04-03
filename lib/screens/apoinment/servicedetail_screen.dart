@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../models/pet_service_model.dart';
-import 'AppointmentScreen.dart';
+import 'appointment_screen.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final PetService service;
 
-  const ServiceDetailScreen({Key? key, required this.service}) : super(key: key);
+  const ServiceDetailScreen({super.key, required this.service});
 
   @override
   State<ServiceDetailScreen> createState() => _ServiceDetailScreenState();
@@ -74,9 +75,9 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             ),
             const SizedBox(height: 12),
             // Mô tả dịch vụ
-            Text(
+            const Text(
               'Mô tả:',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(

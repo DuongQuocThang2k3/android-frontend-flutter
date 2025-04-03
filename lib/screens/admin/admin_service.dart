@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../config/config_url.dart';
 
 class AdminServiceList extends StatefulWidget {
-  const AdminServiceList({Key? key}) : super(key: key);
+  const AdminServiceList({super.key});
 
   @override
   State<AdminServiceList> createState() => _AdminServiceListState();
@@ -152,8 +152,8 @@ class _AdminServiceListState extends State<AdminServiceList> with RouteAware {
         onPressed: () {
           _addOrEditService();
         },
-        child: const Icon(Icons.add),
         backgroundColor: Colors.blue,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -176,7 +176,7 @@ class _AdminServiceListState extends State<AdminServiceList> with RouteAware {
 class AddOrEditServiceScreen extends StatefulWidget {
   final Map<String, dynamic>? service;
 
-  const AddOrEditServiceScreen({Key? key, this.service}) : super(key: key);
+  const AddOrEditServiceScreen({super.key, this.service});
 
   @override
   State<AddOrEditServiceScreen> createState() => _AddOrEditServiceScreenState();

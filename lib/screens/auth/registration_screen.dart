@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:the_cherry_pet_shop/utils/auth.dart';
-import 'login_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -39,7 +38,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     setState(() => _isLoading = true);
 
-    // Gọi phương thức register từ Auth class
+    // Gọi phương thức register từ auth class
     Map<String, dynamic> result = await Auth.register(
       username: _usernameController.text,
       email: _emailController.text,

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../config/config_url.dart';
 
 class AdminOrderList extends StatefulWidget {
-  const AdminOrderList({Key? key}) : super(key: key);
+  const AdminOrderList({super.key});
 
   @override
   _AdminOrderListState createState() => _AdminOrderListState();

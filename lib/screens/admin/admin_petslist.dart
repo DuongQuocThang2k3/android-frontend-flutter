@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../config/config_url.dart';
 
 class AdminPetsList extends StatefulWidget {
-  const AdminPetsList({Key? key}) : super(key: key);
+  const AdminPetsList({super.key});
 
   @override
   State<AdminPetsList> createState() => _AdminPetsListState();
@@ -125,8 +125,8 @@ class _AdminPetsListState extends State<AdminPetsList> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addOrEditPet(),
-        child: const Icon(Icons.add),
         backgroundColor: Colors.blue,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -150,7 +150,7 @@ class _AdminPetsListState extends State<AdminPetsList> {
 class AddOrEditPetScreen extends StatefulWidget {
   final Map<String, dynamic>? pet;
 
-  const AddOrEditPetScreen({Key? key, this.pet}) : super(key: key);
+  const AddOrEditPetScreen({super.key, this.pet});
 
   @override
   State<AddOrEditPetScreen> createState() => _AddOrEditPetScreenState();

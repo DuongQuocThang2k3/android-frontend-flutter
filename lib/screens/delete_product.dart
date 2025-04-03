@@ -6,11 +6,11 @@ class DeleteProductScreen extends StatefulWidget {
   final Function onDeleteSuccess;
   final String baseUrl = 'https://foundgreenpen14.conveyor.cloud/api/ProductApi';
 
-  DeleteProductScreen({
-    Key? key,
+  const DeleteProductScreen({
+    super.key,
     required this.productId,
     required this.onDeleteSuccess,
-  }) : super(key: key);
+  });
 
   @override
   _DeleteProductScreenState createState() => _DeleteProductScreenState();

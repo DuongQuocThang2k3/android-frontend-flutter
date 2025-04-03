@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class UserRolePage extends StatefulWidget {
-  const UserRolePage({Key? key}) : super(key: key);
+  const UserRolePage({super.key});
 
   @override
   _UserRolePageState createState() => _UserRolePageState();
@@ -9,8 +9,8 @@ class UserRolePage extends StatefulWidget {
 
 class _UserRolePageState extends State<UserRolePage> {
   final TextEditingController _searchController = TextEditingController();
-  List<String> _userRoles = ['Admin']; // Giới hạn chỉ có 'Admin' role
-  List<String> _availableRoles = ['User']; // Giới hạn chỉ có 'User' role
+  final List<String> _userRoles = ['Admin']; // Giới hạn chỉ có 'Admin' role
+  final List<String> _availableRoles = ['User']; // Giới hạn chỉ có 'User' role
   String _searchUser = '';
 
   // Hàm tìm kiếm người dùng
@@ -53,39 +53,39 @@ class _UserRolePageState extends State<UserRolePage> {
               decoration: InputDecoration(
                 labelText: 'Tìm User',
                 suffixIcon: IconButton(
-                  icon: Icon(Icons.search),
+                  icon: const Icon(Icons.search),
                   onPressed: _searchUserByName,
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Danh sách role người dùng đang thuộc về
-            Text('Role user thuộc về:'),
-            Container(
+            const Text('Role user thuộc về:'),
+            SizedBox(
               height: 150,
               child: ListView(
                 children: _userRoles.map((role) {
                   return ListTile(
                     title: Text(role),
                     trailing: IconButton(
-                      icon: Icon(Icons.remove),
+                      icon: const Icon(Icons.remove),
                       onPressed: () => _removeRole(role),
                     ),
                   );
                 }).toList(),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Danh sách role người dùng không thuộc về
-            Text('Role user không thuộc về:'),
-            Container(
+            const Text('Role user không thuộc về:'),
+            SizedBox(
               height: 150,
               child: ListView(
                 children: _availableRoles.map((role) {
                   return ListTile(
                     title: Text(role),
                     trailing: IconButton(
-                      icon: Icon(Icons.add),
+                      icon: const Icon(Icons.add),
                       onPressed: () => _assignRole(role),
                     ),
                   );

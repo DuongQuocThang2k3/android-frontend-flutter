@@ -7,12 +7,14 @@ import '../../config/config_url.dart';
 class ForgotPasswordScreen extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
 
+  ForgotPasswordScreen({super.key});
+
   void sendOtp(BuildContext context) async {
     final username = usernameController.text.trim();
 
     // Kiểm tra nếu username bị rỗng
     if (username.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("Please enter your username"),
       ));
       return;
@@ -50,7 +52,7 @@ class ForgotPasswordScreen extends StatelessWidget {
           );
         } else {
           // Nếu OTP là null hoặc trống
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text("Failed to generate OTP. Please try again."),
           ));
         }
@@ -77,19 +79,19 @@ class ForgotPasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Forgot Password")),
+      appBar: AppBar(title: const Text("Forgot Password")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: usernameController,
-              decoration: InputDecoration(labelText: "Username"),
+              decoration: const InputDecoration(labelText: "Username"),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => sendOtp(context),
-              child: Text("Send OTP"),
+              child: const Text("Send OTP"),
             ),
           ],
         ),
@@ -101,7 +103,7 @@ class ForgotPasswordScreen extends StatelessWidget {
 class ResetPasswordScreen extends StatefulWidget {
   final String username;
 
-  ResetPasswordScreen({required this.username});
+  const ResetPasswordScreen({super.key, required this.username});
 
   @override
   _ResetPasswordScreenState createState() => _ResetPasswordScreenState();
@@ -118,7 +120,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     // Kiểm tra nếu các trường bị trống
     if (otp.isEmpty || newPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("Please fill all fields"),
       ));
       return;
@@ -149,7 +151,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
       if (response.statusCode == 200) {
         // Hiển thị thông báo thành công
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Password reset successfully"),
         ));
         Navigator.popUntil(context, (route) => route.isFirst);
@@ -162,7 +164,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           ));
         } catch (e) {
           // Xử lý lỗi không xác định
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text("An unexpected error occurred"),
           ));
         }
@@ -181,16 +183,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Reset Password")),
+      appBar: AppBar(title: const Text("Reset Password")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: otpController,
-              decoration: InputDecoration(labelText: "OTP"),
+              decoration: const InputDecoration(labelText: "OTP"),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextField(
               controller: newPasswordController,
               obscureText: _obscurePassword,
@@ -219,10 +221,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => resetPassword(context),
-              child: Text("Reset Password"),
+              child: const Text("Reset Password"),
             ),
           ],
         ),

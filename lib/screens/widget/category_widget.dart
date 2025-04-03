@@ -3,7 +3,7 @@ import '../../models/category_model.dart';
 import '../product/product_list_screen.dart';
 
 class CategoryWidget extends StatelessWidget {
-  const CategoryWidget({Key? key}) : super(key: key);
+  const CategoryWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -28,10 +28,10 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _screens = [
-      HomeScreen(), // Removed const
-      VideoListScreen(), // Removed const
+      const HomeScreen(), // Removed const
+      const VideoListScreen(), // Removed const
       MapScreen(), // Removed const
-      AccountScreen(), // Removed const
+      const AccountScreen(), // Removed const
     ]; // Giá trị mặc định ban đầu
     _checkUserRole(); // Kiểm tra vai trò người dùng
   }
@@ -62,11 +62,11 @@ class _MainScreenState extends State<MainScreen> {
     // Cấu hình danh sách màn hình dựa trên vai trò
     setState(() {
       _screens = [
-        HomeScreen(), // Home luôn hiển thị
-        VideoListScreen(),
+        const HomeScreen(), // Home luôn hiển thị
+        const VideoListScreen(),
         MapScreen(),
-        if (isAdmin) AdminScreen(), // Chỉ hiển thị AdminScreen nếu là Admin
-        AccountScreen(), // Account luôn hiển thị
+        if (isAdmin) const AdminScreen(), // Chỉ hiển thị AdminScreen nếu là Admin
+        const AccountScreen(), // Account luôn hiển thị
       ];
     });
   }

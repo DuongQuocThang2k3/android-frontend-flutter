@@ -8,7 +8,7 @@ import '../payment_detail/shopping_cart_screen.dart';
 class PetDetailScreen extends StatelessWidget {
   final Map<String, dynamic> pet;
 
-  const PetDetailScreen({Key? key, required this.pet}) : super(key: key);
+  const PetDetailScreen({super.key, required this.pet});
 
   Future<void> _addToCart(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -89,9 +89,9 @@ class PetDetailScreen extends StatelessWidget {
                     style: const TextStyle(fontSize: 18, color: Colors.blue),
                   ),
                   const SizedBox(height: 12),
-                  Text(
+                  const Text(
                     'Mô tả:',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Text(
                     pet['description'] ?? 'Không có mô tả',

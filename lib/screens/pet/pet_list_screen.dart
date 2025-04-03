@@ -8,8 +8,7 @@ class PetListScreen extends StatefulWidget {
   final int categoryId;
   final String categoryName;
 
-  const PetListScreen({Key? key, required this.categoryId, required this.categoryName})
-      : super(key: key);
+  const PetListScreen({super.key, required this.categoryId, required this.categoryName});
 
   @override
   State<PetListScreen> createState() => _PetListScreenState();

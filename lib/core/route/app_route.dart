@@ -17,7 +17,7 @@ class AppRoute {
       case AppRouteName.home:
         return PageRouteBuilder(
           settings: settings,
-          pageBuilder: (_, __, ___) =>MainScreen(),
+          pageBuilder: (_, __, ___) =>const MainScreen(),
           transitionDuration: const Duration(milliseconds: 400),
           transitionsBuilder: (_, animation, __, child) {
             return SlideTransition(
