@@ -4,7 +4,7 @@ import '../admin/admin_productlist.dart';
 import '../admin/admin_service.dart';
 import 'admin_order_list.dart';
 import 'admin_user_list.dart'; // Import UserList
-import 'admin_role.dart'; // Import file AdminRolePage
+import 'admin_roleclaim.dart'; // Import file AdminRolePage
 import 'user_role.dart'; // Import file UserRolePage
 
 class AdminScreen extends StatelessWidget {
