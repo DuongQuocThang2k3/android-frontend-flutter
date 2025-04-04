@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:jwt_decode/jwt_decode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../config/config_url.dart';
@@ -21,7 +20,11 @@ class _AdminRolePageState extends State<AdminRolePage> {
   List<RoleClaimModel> _roleClaims = [];
   Map<String, bool> _permissionsMap = {}; // Map để dễ dàng kiểm tra quyền
   bool _loading = false;
-  String? _currentRole;
+  String _selectedRole = 'Admin'; // Mặc định chọn Admin
+  final List<String> _availableRoles = [
+    'Admin',
+    'User'
+  ]; // Danh sách vai trò có sẵn
 
   final List<String> actions = ['view', 'create', 'edit', 'delete', 'all'];
 
@@ -40,13 +43,8 @@ class _AdminRolePageState extends State<AdminRolePage> {
 
       if (token == null) throw Exception('Token không tồn tại.');
 
-      // Decode token để lấy role
-      Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
-      String role = decodedToken['role'] ?? 'Không xác định';
-      _currentRole = role;
-
       final response = await http.get(
-        Uri.parse('${Config_URL.baseUrl}RoleClaim/$role'),
+        Uri.parse('${Config_URL.baseUrl}RoleClaim/$_selectedRole'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -125,7 +123,7 @@ class _AdminRolePageState extends State<AdminRolePage> {
 
       // Tạo payload cho API
       final payload = {
-        "roleName": _currentRole,
+        "roleName": _selectedRole,
         "claimValue": "$resource.$action"
       };
 
@@ -140,14 +138,21 @@ class _AdminRolePageState extends State<AdminRolePage> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Đã thêm quyền: $resource.$action')),
+          SnackBar(
+            content:
+                Text('Đã thêm quyền: $resource.$action cho $_selectedRole'),
+            backgroundColor: Colors.green,
+          ),
         );
       } else {
         throw Exception('Lỗi khi thêm quyền: ${response.statusCode}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
+        SnackBar(
+          content: Text('Lỗi: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       setState(() => _loading = false);
@@ -166,7 +171,7 @@ class _AdminRolePageState extends State<AdminRolePage> {
 
       // Tạo payload cho API
       final payload = {
-        "roleName": _currentRole,
+        "roleName": _selectedRole,
         "claimValue": "$resource.$action"
       };
 
@@ -181,14 +186,20 @@ class _AdminRolePageState extends State<AdminRolePage> {
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Đã xóa quyền: $resource.$action')),
+          SnackBar(
+            content: Text('Đã xóa quyền: $resource.$action từ $_selectedRole'),
+            backgroundColor: Colors.orange,
+          ),
         );
       } else {
         throw Exception('Lỗi khi xóa quyền: ${response.statusCode}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
+        SnackBar(
+          content: Text('Lỗi: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       setState(() => _loading = false);
@@ -250,100 +261,253 @@ class _AdminRolePageState extends State<AdminRolePage> {
   @override
   Widget build(BuildContext context) {
     final grouped = _groupPermissionsByResource();
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Quản lý quyền')),
+      appBar: AppBar(
+        title: const Text(
+          'Quản lý quyền',
+          style: TextStyle(fontSize: 16),
+        ),
+        elevation: 1,
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Vai trò hiện tại:',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    _currentRole ?? 'Không xác định',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.blueAccent,
+                  // Dropdown chọn vai trò
+                  Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Chọn vai trò:',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedRole,
+                                isExpanded: true,
+                                icon: const Icon(Icons.arrow_drop_down),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade800,
+                                ),
+                                items: _availableRoles.map((String role) {
+                                  return DropdownMenuItem<String>(
+                                    value: role,
+                                    child: Text(role),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null &&
+                                      newValue != _selectedRole) {
+                                    setState(() {
+                                      _selectedRole = newValue;
+                                      _permissionsMap.clear();
+                                      _roleClaims.clear();
+                                    });
+                                    _fetchRoleClaims();
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+
                   const SizedBox(height: 16),
 
-                  // Bảng quyền
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                headingRowHeight: 30,
-                dataRowMinHeight: 28,
-                columnSpacing: 12,
-                columns: [
-                  const DataColumn(
-                    label: Text(
-                      'Resource',
-                      style: TextStyle(fontSize: 11),
+                  // Tiêu đề bảng quyền
+                  Text(
+                    'Danh sách quyền cho vai trò: $_selectedRole',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  ...actions.map((act) =>
-                      DataColumn(
-                        label: Text(
-                          act[0].toUpperCase() + act.substring(1),
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                      )),
-                ],
-                rows: grouped.entries.map((entry) {
-                  final resource = entry.key;
-                  final permissions = entry.value;
+                  const SizedBox(height: 8),
 
-                  return DataRow(
-                    cells: [
-                      DataCell(Text(resource,
-                          style: const TextStyle(fontSize: 11))),
-                      ...actions.map((action) {
-                        return DataCell(
-                          Checkbox(
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
-                            value: permissions[action] ?? false,
-                            onChanged: (val) =>
-                                _onPermissionChanged(
-                                    resource, action, val),
+                  // Bảng quyền - Thiết kế lại để vừa với màn hình
+                  Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Tính toán chiều rộng khả dụng
+                        final availableWidth =
+                            constraints.maxWidth - 16; // Trừ đi padding
+
+                        // Tính toán chiều rộng cột
+                  final resourceColumnWidth = availableWidth *
+                      0.3; // 30% cho cột resource
+                  final actionColumnWidth = (availableWidth * 0.7) /
+                      actions.length; // Phần còn lại chia đều cho các action
+
+                  return Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Table(
+                      columnWidths: {
+                        0: FixedColumnWidth(resourceColumnWidth),
+                        for (int i = 0; i < actions.length; i++)
+                          i + 1: FixedColumnWidth(actionColumnWidth),
+                      },
+                      border: TableBorder(
+                        horizontalInside: BorderSide(color: Colors.grey
+                            .shade200),
+                        verticalInside: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      children: [
+                        // Header row
+                        TableRow(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                          ),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 4),
+                              child: Text(
+                                'Resource',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            ...actions.map((act) =>
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 2),
+                                  child: Center(
+                                    child: Text(
+                                      act[0].toUpperCase() + act.substring(1),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                )),
+                          ],
+                        ),
+
+                        // Data rows
+                        ...grouped.entries.map((entry) {
+                          final resource = entry.key;
+                          final permissions = entry.value;
+
+                                return TableRow(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8, horizontal: 4),
+                                      child: Text(
+                                        resource,
+                                        style: TextStyle(fontSize: 13),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    ...actions.map((action) => Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 4),
+                                            child: SizedBox(
+                                              height: 24,
+                                              width: 24,
+                                              child: Checkbox(
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                                materialTapTargetSize:
+                                                    MaterialTapTargetSize
+                                                        .shrinkWrap,
+                                                value: permissions[action] ??
+                                                    false,
+                                                onChanged: (val) =>
+                                                    _onPermissionChanged(
+                                                        resource, action, val),
+                                              ),
+                                            ),
+                                          ),
+                                        )),
+                                  ],
+                                );
+                              }).toList(),
+                            ],
                           ),
                         );
-                      }),
-                    ],
-                  );
-                }).toList(),
-              ),
+                      },
+                    ),
             ),
 
                   const SizedBox(height: 20),
 
-                  // Nút để làm mới dữ liệu
-            ElevatedButton.icon(
-              onPressed: _fetchRoleClaims,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Làm mới dữ liệu'),
-            ),
-
-            const SizedBox(height: 8),
-
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AdminScreen(),
+                  // Các nút chức năng
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _fetchRoleClaims,
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text(
+                      'Làm mới dữ liệu',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.blue.shade600,
+                    ),
                   ),
-                );
-              },
-              child: const Text('Đi đến Admin Screen'),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AdminScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.dashboard, size: 16),
+                    label: const Text(
+                      'Quay lại Dashboard',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
