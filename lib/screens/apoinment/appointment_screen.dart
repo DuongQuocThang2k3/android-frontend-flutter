@@ -1,8 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 import '../../config/config_url.dart';
-import '../../models/Appointment.dart';
+import '../../models/appointment.dart';
 import '../../models/pet_service_model.dart';
 
 class AppointmentScreen extends StatefulWidget {

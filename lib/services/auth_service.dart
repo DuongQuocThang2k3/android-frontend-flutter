@@ -1,23 +1,21 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../config/config_url.dart';
+
+import '../services/api_client.dart';
+import '../shared_preferences/token_manager.dart';
 
 class AuthService {
-  // đường dẫn tới API login
-  String get apiUrl => "${Config_URL.baseUrl}Authenticate/login";
+  final ApiClient _apiClient = ApiClient();
+
+  // Endpoint đăng nhập (baseUrl được cấu hình trong ApiClient)
+  String get apiUrl => "Authenticate/login";
 
   Future<Map<String, dynamic>> login(String username, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "username": username,
-          "password": password,
-        }),
-      );
+      // Gọi API đăng nhập thông qua ApiClient
+      final response = await _apiClient.post(apiUrl, body: {
+        "username": username,
+        "password": password,
+      });
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -26,29 +24,26 @@ class AuthService {
           return {"success": false, "message": data['message']};
         }
 
-        // Lấy token trả về
+        // Lấy token trả về từ API
         String token = data['token'];
 
-        // Giải mã token để lấy các thông tin đăng nhập: tên đăng nhập, role...
-        Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+        // Lưu token vào SharedPreferences qua TokenManager
+        await TokenManager.saveToken(token);
 
-        // Lưu token vào SharedPreferences
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString('jwt_token', token);  // Lưu token
+        // Lấy token đã được giải mã thông qua TokenManager
+        Map<String, dynamic> decodedToken =
+            await TokenManager.getDecodedToken();
 
-        // Trả về thông tin đăng nhập và vai trò người dùng
         return {
           "success": true,
           "token": token,
           "decodedToken": decodedToken,
-          "role": decodedToken['role'], // Lấy role từ token
+          "role": decodedToken['role'],
         };
       } else {
-        // Nếu status code không phải 200, xử lý lỗi đăng nhập
         return {"success": false, "message": "Failed to login: ${response.statusCode}"};
       }
     } catch (e) {
-      // Handle network or parsing errors
       return {"success": false, "message": "Network error: $e"};
     }
   }

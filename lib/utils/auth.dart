@@ -1,27 +1,25 @@
 import 'dart:convert';
-import 'package:jwt_decoder/jwt_decoder.dart'; // Thư viện jwt_decoder
+
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
+import '../shared_preferences/token_manager.dart';
 
 class Auth {
   static final AuthService _authService = AuthService();
   static final ApiClient _apiClient = ApiClient();
 
-  // Phương thức để giải mã token
-  static Map<String, dynamic> decodeToken(String token) {
-    try {
-      return JwtDecoder.decode(token); // Giải mã token và trả về Map
-    } catch (e) {
-      return {}; // Trả về Map rỗng nếu có lỗi
-    }
+  // Phương thức để giải mã token đã lưu thông qua TokenManager
+  static Future<Map<String, dynamic>> decodeStoredToken() async {
+    return await TokenManager.getDecodedToken();
   }
 
-  // Đăng nhập
+  // Đăng nhập: gọi AuthService.login (trong đó token đã được lưu qua TokenManager)
   static Future<Map<String, dynamic>> login(String username, String password) async {
     var result = await _authService.login(username, password);
-    return result; // returns a map with {success: bool, token: string?, role: string?, message: string?}
+    return result; // Trả về map gồm {success, token, decodedToken, role, message}
   }
 
+  // Đăng ký: gọi API thông qua ApiClient và xử lý kết quả trả về
   static Future<Map<String, dynamic>> register({
     required String username,
     required String email,
@@ -65,5 +63,4 @@ class Auth {
       };
     }
   }
-
 }
