@@ -49,14 +49,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       return;
     }
 
+    print("Sending OTP request with username: $username");
+
     setState(() => _isLoading = true);
 
     try {
       final apiClient = ApiClient();
       final response = await apiClient.post(
         'Authenticate/send-otp',
-        body: {'username': username},
+        body: username,
       );
+
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
 
       setState(() => _isLoading = false);
 
@@ -65,9 +70,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         if (body['status'] == true) {
           final otp = body['otp']?.toString() ?? '';
           if (otp.isNotEmpty) {
-            // Hiển thị dialog với OTP
             await _showOtpDialog(context, otp);
-            // Sau khi người dùng bấm OK, điều hướng sang màn hình reset
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -79,11 +82,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                 context, "Không nhận được mã OTP, thử lại.", Colors.redAccent);
           }
         } else {
-          _showSnackBar(context, "Lỗi: ${body['message']}", Colors.redAccent);
+          _showSnackBar(context, "Lỗi: ${body['message'] ?? 'Không xác định'}", Colors.redAccent);
         }
       } else {
-        final body = jsonDecode(response.body);
-        _showSnackBar(context, "Lỗi: ${body['message']}", Colors.redAccent);
+        String errorMessage = "Lỗi không xác định";
+        try {
+          final body = jsonDecode(response.body);
+          errorMessage = body['errors']?["\$"]?.first ?? body['message'] ?? "Lỗi không xác định (mã ${response.statusCode})";
+        } catch (_) {
+          errorMessage = "Lỗi không xác định (mã ${response.statusCode})";
+        }
+        _showSnackBar(context, errorMessage, Colors.redAccent);
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -130,7 +139,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             const SizedBox(width: 8),
             Expanded(
                 child:
-                    Text(message, style: const TextStyle(color: Colors.white))),
+                Text(message, style: const TextStyle(color: Colors.white))),
           ],
         ),
         backgroundColor: bg,
@@ -178,7 +187,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             builder: (context, viewportConstraints) => SingleChildScrollView(
               child: ConstrainedBox(
                 constraints:
-                    BoxConstraints(minHeight: viewportConstraints.maxHeight),
+                BoxConstraints(minHeight: viewportConstraints.maxHeight),
                 child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: Padding(
@@ -261,19 +270,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                         borderRadius:
-                                            BorderRadius.circular(12)),
+                                        BorderRadius.circular(12)),
                                     elevation: 0,
                                   ),
                                   child: _isLoading
                                       ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation(
-                                                      Colors.white)),
-                                        )
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                        AlwaysStoppedAnimation(
+                                            Colors.white)),
+                                  )
                                       : const Text("Gửi mã OTP"),
                                 ),
                               ),
@@ -310,7 +319,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   final TextEditingController otpController = TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
   final TextEditingController confirmPasswordController =
-      TextEditingController();
+  TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
   bool _isLoading = false;
@@ -378,7 +387,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
         opacity: _fadeAnim,
         child: Dialog(
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -477,7 +486,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
             builder: (context, viewportConstraints) => SingleChildScrollView(
               child: ConstrainedBox(
                 constraints:
-                    BoxConstraints(minHeight: viewportConstraints.maxHeight),
+                BoxConstraints(minHeight: viewportConstraints.maxHeight),
                 child: FadeTransition(
                   opacity: _fadeAnim,
                   child: Padding(
@@ -530,11 +539,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                                           color: primaryColor),
                                       border: OutlineInputBorder(
                                           borderRadius:
-                                              BorderRadius.circular(12),
+                                          BorderRadius.circular(12),
                                           borderSide: BorderSide.none),
                                       focusedBorder: OutlineInputBorder(
                                           borderRadius:
-                                              BorderRadius.circular(12),
+                                          BorderRadius.circular(12),
                                           borderSide: BorderSide(
                                               color: primaryColor, width: 1)),
                                     ),
@@ -562,16 +571,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                                                 : Icons.visibility,
                                             color: Colors.grey[600]),
                                         onPressed: () => setState(() =>
-                                            _obscurePassword =
-                                                !_obscurePassword),
+                                        _obscurePassword =
+                                        !_obscurePassword),
                                       ),
                                       border: OutlineInputBorder(
                                           borderRadius:
-                                              BorderRadius.circular(12),
+                                          BorderRadius.circular(12),
                                           borderSide: BorderSide.none),
                                       focusedBorder: OutlineInputBorder(
                                           borderRadius:
-                                              BorderRadius.circular(12),
+                                          BorderRadius.circular(12),
                                           borderSide: BorderSide(
                                               color: primaryColor, width: 1)),
                                     ),
@@ -599,15 +608,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                                                 : Icons.visibility,
                                             color: Colors.grey[600]),
                                         onPressed: () => setState(() =>
-                                            _obscureConfirm = !_obscureConfirm),
+                                        _obscureConfirm = !_obscureConfirm),
                                       ),
                                       border: OutlineInputBorder(
                                           borderRadius:
-                                              BorderRadius.circular(12),
+                                          BorderRadius.circular(12),
                                           borderSide: BorderSide.none),
                                       focusedBorder: OutlineInputBorder(
                                           borderRadius:
-                                              BorderRadius.circular(12),
+                                          BorderRadius.circular(12),
                                           borderSide: BorderSide(
                                               color: primaryColor, width: 1)),
                                     ),
@@ -625,18 +634,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(12)),
+                                            BorderRadius.circular(12)),
                                         elevation: 0,
                                       ),
                                       child: _isLoading
                                           ? const SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation(
-                                                          Colors.white)))
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                              AlwaysStoppedAnimation(
+                                                  Colors.white)))
                                           : const Text("Đặt lại mật khẩu"),
                                     ),
                                   ),

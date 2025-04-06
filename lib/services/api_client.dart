@@ -26,11 +26,40 @@ class ApiClient {
       bool requiresAuth = true}) async {
     final builtHeaders =
         await _buildHeaders(headers, requiresAuth: requiresAuth);
+
+    // Nếu body là chuỗi, bọc nó trong dấu ngoặc kép để tạo JSON hợp lệ
+    final String bodyString =
+        body is String ? jsonEncode(body) : jsonEncode(body);
+
+    print("Request headers: $builtHeaders"); // Log để kiểm tra
+    print("Request body: $bodyString"); // Log để kiểm tra
+
     return await http.post(
       Uri.parse('$baseUrl$endpoint'),
       headers: builtHeaders,
-      body: jsonEncode(body),
+      body: bodyString,
     );
+  }
+
+  Future<Map<String, String>> _buildHeaders(Map<String, String>? headers,
+      {bool requiresAuth = true}) async {
+    final Map<String, String> defaultHeaders = {
+      'Content-Type': 'application/json'
+      // Giữ nguyên Content-Type là application/json
+    };
+
+    if (requiresAuth) {
+      final token = await TokenManager.getToken();
+      if (token != null) {
+        defaultHeaders['Authorization'] = 'Bearer $token';
+      }
+    }
+
+    if (headers != null) {
+      defaultHeaders.addAll(headers);
+    }
+
+    return defaultHeaders;
   }
 
   Future<http.Response> put(String endpoint,
@@ -52,24 +81,4 @@ class ApiClient {
     );
   }
 
-  Future<Map<String, String>> _buildHeaders(Map<String, String>? headers,
-      {bool requiresAuth = true}) async {
-    final Map<String, String> defaultHeaders = {
-      'Content-Type': 'application/json'
-    };
-
-    // Chỉ thêm header Authorization nếu requiresAuth là true
-    if (requiresAuth) {
-      final token = await TokenManager.getToken();
-      if (token != null) {
-        defaultHeaders['Authorization'] = 'Bearer $token';
-      }
-    }
-
-    if (headers != null) {
-      defaultHeaders.addAll(headers);
-    }
-
-    return defaultHeaders;
-  }
 }

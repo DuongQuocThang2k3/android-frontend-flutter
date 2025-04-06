@@ -38,6 +38,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     _loadUser();
   }
 
+  // Load thông tin người dùng đã lưu từ login (user_info được lưu vào TokenManager)
   Future<void> _loadUser() async {
     final session = await TokenManager.getSession();
     if (session != null) {
@@ -51,7 +52,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
         debugPrint("Lỗi parse session: $e");
       }
     }
-    // Khởi tạo các controller với dữ liệu từ user (nếu có), hoặc dùng giá trị truyền vào
     _nameController = TextEditingController(text: _user?.fullName ?? '');
     _phoneController =
         TextEditingController(text: _user?.phoneNumber ?? widget.userPhone);
@@ -74,11 +74,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
 
     try {
-      final userId = _user?.id ?? await TokenManager.getUserId();
+      // Vì token không chứa id cụ thể, sử dụng username làm định danh
+      final username = _user?.username;
       final token = await TokenManager.getToken();
       final cart = await TokenManager.getCart();
 
-      if (userId == null || token == null) {
+      if (username == null || token == null) {
         throw Exception('Không tìm thấy thông tin người dùng');
       }
 
@@ -87,12 +88,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       if (cart.isEmpty) {
         orderDetails = [
           {
-            "id": 0,
-            "orderId": 0,
-            "order": null,
             "productType": "Product",
             "productId": 1, // Thay thế bằng ID thực nếu cần
-            "petId": 0,
             "quantity": 1,
             "price": widget.price,
           }
@@ -100,37 +97,37 @@ class _PaymentScreenState extends State<PaymentScreen> {
       } else {
         orderDetails = cart
             .map((item) => {
-                  "id": 0,
-                  "orderId": 0,
-                  "order": null,
                   "productType": item.productType ?? "Product",
                   "productId": item.productId,
-                  "petId": 0,
                   "quantity": item.quantity,
                   "price": item.unitPrice,
                 })
             .toList();
       }
 
+      // Sử dụng username làm định danh (UserId) nếu server chấp nhận
       final orderData = {
-        "orderId": 0,
-        "userId": userId,
+        "UserId": username, // Sử dụng username thay cho id
         "orderDate": DateTime.now().toIso8601String(),
         "totalPrice": widget.price,
         "status": "Pending",
         "orderDetails": orderDetails,
         // Thông tin người dùng gửi kèm đơn hàng
         "user": {
-          "id": userId,
           "fullName": _nameController.text,
           "phoneNumber": _phoneController.text,
           "address": _addressController.text,
         }
       };
 
-      // Sử dụng ApiClient để gọi API đặt hàng
+      // In ra URL và dữ liệu đơn hàng để debug
+      final orderUrl =
+          '${_apiClient.baseUrl}Order'; // Hoặc '/api/Order' nếu cần
+      debugPrint('Order URL: $orderUrl');
+      debugPrint('Order Data: ${json.encode(orderData)}');
+
       final response = await _apiClient.post(
-        'Order',
+        'Order', // Nếu endpoint thực sự là '/api/Order', hãy thay đổi ở đây
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -139,9 +136,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Xóa giỏ hàng sau khi đặt hàng thành công
         await TokenManager.clearCart();
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Đặt hàng thành công!'),
@@ -188,6 +183,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Hiển thị username lấy từ TokenManager/UserModel
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Text(
+                  'Tài khoản: ${_user!.username}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               // Thẻ thông tin sản phẩm
               Card(
                 elevation: 4,
@@ -307,9 +313,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               ),
                             );
                             return;
-                    }
-                    _placeOrder();
-                  },
+                          }
+                          _placeOrder();
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     padding: const EdgeInsets.all(16.0),
