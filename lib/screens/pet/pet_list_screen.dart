@@ -1,14 +1,19 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import '../../config/config_url.dart';
+
+import '../../services/api_client.dart';
 import 'pet_detail_screen.dart';
 
 class PetListScreen extends StatefulWidget {
   final int categoryId;
   final String categoryName;
 
-  const PetListScreen({super.key, required this.categoryId, required this.categoryName});
+  const PetListScreen({
+    super.key,
+    required this.categoryId,
+    required this.categoryName,
+  });
 
   @override
   State<PetListScreen> createState() => _PetListScreenState();
@@ -25,12 +30,13 @@ class _PetListScreenState extends State<PetListScreen> {
 
   Future<List<dynamic>> _fetchPetsByCategory(int categoryId) async {
     try {
-      final response = await http.get(Uri.parse('${Config_URL.baseUrl}Pet'));
+      final apiClient = ApiClient();
+      final response = await apiClient.get('Pet'); // GET /Pet
       if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = json.decode(response.body);
         return data.where((pet) => pet['categoryId'] == categoryId).toList();
       } else {
-        throw Exception('Failed to load pets');
+        throw Exception('Failed to load pets (status ${response.statusCode})');
       }
     } catch (e) {
       throw Exception('Failed to load pets: $e');
@@ -65,6 +71,14 @@ class _PetListScreenState extends State<PetListScreen> {
             );
           } else if (snapshot.hasData) {
             final pets = snapshot.data!;
+            if (pets.isEmpty) {
+              return Center(
+                child: Text(
+                  'No pets found',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              );
+            }
             return ListView.separated(
               itemCount: pets.length,
               separatorBuilder: (_, __) => const Divider(height: 1),
@@ -72,7 +86,8 @@ class _PetListScreenState extends State<PetListScreen> {
                 final pet = pets[index];
                 return Card(
                   elevation: 4,
-                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: ListTile(
                     leading: pet['images'] != null && pet['images'].isNotEmpty
                         ? ClipRRect(
@@ -82,17 +97,16 @@ class _PetListScreenState extends State<PetListScreen> {
                         width: 60,
                         height: 60,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return _buildPlaceholder();
-                        },
-                      ),
-                    )
+                              errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                            ),
+                          )
                         : _buildPlaceholder(),
                     title: Text(
                       '${index + 1}. ${pet['name']}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
                       'Giá: ${pet['price']} VND\nTình trạng: ${pet['status']}',
@@ -103,7 +117,7 @@ class _PetListScreenState extends State<PetListScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PetDetailScreen(pet: pet),
+                          builder: (_) => PetDetailScreen(pet: pet),
                         ),
                       );
                     },
@@ -124,7 +138,6 @@ class _PetListScreenState extends State<PetListScreen> {
     );
   }
 
-  // Hàm xây dựng placeholder khi không có hình ảnh hoặc lỗi
   Widget _buildPlaceholder() {
     return Container(
       width: 60,

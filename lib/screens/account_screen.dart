@@ -33,7 +33,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
   /// Load thông tin user từ TokenManager
   Future<void> _loadUserData() async {
-    final String? session = await TokenManager.getSession();
+    final String? session = (await TokenManager.getSession()) as String?;
     if (session != null) {
       try {
         final data = json.decode(session) as Map<String, dynamic>;

@@ -1,106 +1,115 @@
 import 'package:flutter/material.dart';
+
+import '../../models/cart_item.dart';
 import '../../models/product_model.dart';
+import '../../shared_preferences/token_manager.dart';
+import '../payment_detail/payment_screen.dart';
 
-
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   final Product product;
 
-  const ProductDetailScreen({super.key, required this.product});
+  const ProductDetailScreen({Key? key, required this.product})
+      : super(key: key);
+
+  @override
+  _ProductDetailScreenState createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  late Product _p;
+
+  @override
+  void initState() {
+    super.initState();
+    _p = widget.product;
+  }
+
+  Future<void> _addToCart() async {
+    final cart = await TokenManager.getCart();
+    cart.add(CartItem(
+      productType: 'Product',
+      productId: _p.productId,
+      name: _p.name,
+      unitPrice: _p.price,
+      quantity: 1,
+      imageUrl: _p.images.first.imageUrl,
+    ));
+    await TokenManager.saveCart(cart);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Đã thêm \"${_p.name}\" vào giỏ hàng!')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          product.name,
-          style: const TextStyle(fontSize: 18),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
+        title: Text(_p.name),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () => Navigator.pushNamed(context, '/cart'),
+          )
+        ],
       ),
       body: Column(
         children: [
-          // Hình ảnh sản phẩm
-          if (product.images.isNotEmpty)
-            Container(
-              height: 250,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(product.images[0].imageUrl),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            )
-          else
-            Container(
-              height: 250,
-              color: Colors.grey[200],
-              child: const Center(
-                child: Text('Không có hình ảnh', style: TextStyle(color: Colors.grey)),
-              ),
-            ),
-
-          // Thông tin sản phẩm
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Giá: ${product.price} VND',
-                    style: const TextStyle(fontSize: 18, color: Colors.blue),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Mô tả:',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    product.description,
-                    style: const TextStyle(fontSize: 16, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Số lượng: ${product.quantity}',
-                    style: const TextStyle(fontSize: 16, color: Colors.black),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Danh mục: ${product.supplyCategory.name}',
-                    style: const TextStyle(fontSize: 16, color: Colors.black),
-                  ),
-                ],
-              ),
+          Image.network(_p.images.first.imageUrl,
+              height: 250, fit: BoxFit.cover),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_p.name, style: const TextStyle(fontSize: 24)),
+                const SizedBox(height: 8),
+                Text('Giá: ${_p.price.toStringAsFixed(0)} VND',
+                    style: const TextStyle(fontSize: 18)),
+                const SizedBox(height: 8),
+                Text('Mô tả: ${_p.description}'),
+                const SizedBox(height: 8),
+                Text('Số lượng: ${_p.quantity}'),
+              ],
             ),
           ),
-
-          // Nút Mua Ngay
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Đã thêm ${product.name} vào giỏ hàng!')),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: const EdgeInsets.all(16.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _addToCart,
+                    child: const Text('THÊM VÀO GIỎ HÀNG'),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'MUA NGAY',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final phone =
+                          await TokenManager.getUserPhone() ?? 'Chưa cập nhật';
+                      final address = await TokenManager.getUserAddress() ??
+                          'Chưa cập nhật';
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PaymentScreen(
+                            productName: _p.name,
+                            price: _p.price,
+                            userPhone: phone,
+                            userAddress: address,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('MUA NGAY'),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:the_cherry_pet_shop/models/user_model.dart';
 import 'package:the_cherry_pet_shop/screens/map_screen.dart';
-import 'package:the_cherry_pet_shop/screens/video_screen.dart';
+import 'package:the_cherry_pet_shop/screens/post_list_screen.dart';
 import 'package:the_cherry_pet_shop/shared_preferences/token_manager.dart';
 
 import 'account_screen.dart';
@@ -30,7 +30,7 @@ class _MainScreenState extends State<MainScreen> {
     // Khởi tạo ban đầu danh sách màn hình (không có màn hình Admin)
     _screens = [
       const HomeScreen(),
-      const VideoListScreen(),
+      const PostListScreen(),
       MapScreen(),
       const AccountScreen(),
     ];
@@ -38,7 +38,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _checkUserRole() async {
-    final String? userData = await TokenManager.getSession();
+    final String? userData = (await TokenManager.getSession()) as String?;
 
     if (userData != null) {
       try {
@@ -56,7 +56,7 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _screens = [
         const HomeScreen(),
-        const VideoListScreen(),
+        const PostListScreen(),
         MapScreen(),
         if (isAdmin) const AdminScreen(),
         const AccountScreen(),
@@ -81,9 +81,9 @@ class _MainScreenState extends State<MainScreen> {
         label: 'Video',
       ),
       BottomNavigationBarItem(
-        icon: Icon(Icons.map_outlined),
-        activeIcon: Icon(Icons.map, color: primaryColor),
-        label: 'Bản đồ',
+        icon: Icon(Icons.info_outline),
+        activeIcon: Icon(Icons.info, color: primaryColor),
+        label: 'Giới thiệu',
       ),
       if (isAdmin)
         BottomNavigationBarItem(

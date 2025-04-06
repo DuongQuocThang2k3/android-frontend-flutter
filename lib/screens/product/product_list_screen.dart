@@ -1,8 +1,9 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import '../../config/config_url.dart';
+
 import '../../models/product_model.dart';
+import '../../services/api_client.dart';
 import 'product_detail_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -30,24 +31,24 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Future<List<Product>> _fetchProductsByCategory(int supplyCategoryId) async {
     try {
-      final response = await http.get(Uri.parse('${Config_URL.baseUrl}Product'));
+      // ApiClient đã tự ghép baseUrl và thêm Authorization header
+      final response = await ApiClient().get('Product');
+
       if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        print("Fetched products: $data"); // Log dữ liệu
+        final List<dynamic> data = json.decode(response.body);
         return data
             .map((json) => Product.fromJson(json))
-            .where((product) =>
-        product.supplyCategory.supplyCategoryId == supplyCategoryId)
+            .where((p) => p.supplyCategory.supplyCategoryId == supplyCategoryId)
             .toList();
       } else {
-        throw Exception('Failed to load products');
+        throw Exception(
+            'Failed to load products (status ${response.statusCode})');
       }
     } catch (e) {
-      print("Error loading products: $e");
-      throw Exception('Failed to load products: $e');
+      debugPrint('Error loading products: $e');
+      rethrow;
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +63,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
             return Center(child: Text('Failed to load products: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             final products = snapshot.data!;
+            if (products.isEmpty) {
+              return const Center(child: Text('Không có sản phẩm'));
+            }
             return ListView.separated(
               itemCount: products.length,
               separatorBuilder: (_, __) => const Divider(height: 1),
@@ -92,7 +96,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProductDetailScreen(product: product),
+                        builder: (_) => ProductDetailScreen(product: product),
                       ),
                     );
                   },

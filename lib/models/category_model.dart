@@ -13,7 +13,8 @@ class Category {
 final categories = [
   Category(id: "1",name: "Đồ ăn cho pet", image: "assets/san-pham-1648734362.png"),
   Category(id: "2",name: "Đồ chơi cho pet", image: "assets/dochoimeo.png"),
-  Category(id: "3",name: "Phụ kiện hăm sóc & vệ sinh", image: "assets/dochoicho.png"),
-  Category(id: "4",name: "Làm đẹp & sức khỏe", image: "assets/keocatchopet.png"),
+  Category(id: "3", name: "Phụ kiện, chăm sóc", image: "assets/dochoicho.png"),
+  Category(
+      id: "4", name: "Làm đẹp, sức khỏe", image: "assets/keocatchopet.png"),
   Category(id: "5",name: "Dụng cụ vận chuyển ", image: "assets/chuongcho.png"),
 ];
