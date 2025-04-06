@@ -68,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   // Hàm xử lý đăng nhập
+  // Hàm xử lý đăng nhập
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -83,43 +84,19 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _isLoading = false);
 
     if (result['success'] == true) {
-      // Vì token đã được lưu qua TokenManager trong Auth.login,
-      // chỉ cần lưu thông tin người dùng vào session.
+      // Giả sử kết quả trả về chứa 'token' và 'decodedToken'
+      String token = result['token'] ?? '';
       Map<String, dynamic> decodedToken = result['decodedToken'];
       UserModel user = UserModel.fromJson(decodedToken);
 
+      // Lưu thông tin đăng nhập: token, username, password và quyền user
       await TokenManager.saveSession(json.encode({
+        'token': token,
         'username': _usernameController.text,
-        'userId': _usernameController.text,
-        'user_info': user.toJson()
+        'password': _passwordController.text,
+        'user_info': user.toJson(),
+        'role': user.role,
       }));
-
-      // Hiển thị hộp thoại hỏi có lưu mật khẩu cho lần đăng nhập sau không
-      bool? shouldSave = await showDialog<bool>(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text("Save Password"),
-            content: const Text(
-                "Would you like to save your password for next login?"),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("No"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text("Yes"),
-              ),
-            ],
-          );
-        },
-      );
-
-      if (shouldSave == true) {
-        // Giả sử bạn đã bổ sung hàm savePassword vào TokenManager
-        await TokenManager.savePassword(_passwordController.text);
-      }
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainScreen()),
@@ -131,7 +108,6 @@ class _LoginScreenState extends State<LoginScreen>
       _showErrorSnackbar(errorMessage);
     }
   }
-
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -298,15 +274,6 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                               const SizedBox(height: 16),
                               // Password field
-                              Text(
-                                'Mật khẩu',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[800],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
                               TextFormField(
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,

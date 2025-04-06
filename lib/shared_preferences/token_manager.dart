@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,71 +8,92 @@ class TokenManager {
   static const String _sessionKey = 'session_data';
   static const String _passwordKey = 'user_password';
 
-  // Lưu token vào SharedPreferences
+  /// Lưu JWT token vào SharedPreferences
   static Future<void> saveToken(String token) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
   }
 
-  // Lấy token từ SharedPreferences
+  /// Lấy JWT token từ SharedPreferences
   static Future<String?> getToken() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_tokenKey);
   }
 
-  // Xóa token khỏi SharedPreferences
+  /// Xóa JWT token khỏi SharedPreferences
   static Future<void> removeToken() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
   }
 
-  // Lưu session vào SharedPreferences
+  /// Lưu session JSON (ví dụ chứa username, user_info, role, ...) vào SharedPreferences
   static Future<void> saveSession(String session) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_sessionKey, session);
   }
 
-  // Lấy session từ SharedPreferences
+  /// Lấy session JSON từ SharedPreferences
   static Future<String?> getSession() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_sessionKey);
   }
 
-  // Xóa session khỏi SharedPreferences
+  /// Xóa session khỏi SharedPreferences
   static Future<void> removeSession() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_sessionKey);
   }
 
-  // Hàm nhận và giải mã token từ SharedPreferences
-  static Future<Map<String, dynamic>> getDecodedToken() async {
-    String? token = await getToken();
-    if (token == null) {
-      return {};
-    }
-    try {
-      return JwtDecoder.decode(token);
-    } catch (e) {
-      // Trường hợp giải mã thất bại
-      return {};
-    }
+  /// Alias cho removeSession()
+  static Future<void> clearSession() async {
+    await removeSession();
   }
 
-  // Lưu mật khẩu vào SharedPreferences
+  /// Lưu mật khẩu (nếu cần) vào SharedPreferences
   static Future<void> savePassword(String password) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_passwordKey, password);
   }
 
-  // Lấy mật khẩu từ SharedPreferences
+  /// Lấy mật khẩu từ SharedPreferences
   static Future<String?> getPassword() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_passwordKey);
   }
 
-  // Xóa mật khẩu khỏi SharedPreferences
+  /// Xóa mật khẩu khỏi SharedPreferences
   static Future<void> removePassword() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_passwordKey);
+  }
+
+  /// Xóa tất cả: token, session và password
+  static Future<void> clearAll() async {
+    await removeToken();
+    await removeSession();
+    await removePassword();
+  }
+
+  /// Giải mã JWT token lưu trong SharedPreferences
+  static Future<Map<String, dynamic>> getDecodedToken() async {
+    final token = await getToken();
+    if (token == null) return {};
+    try {
+      return JwtDecoder.decode(token);
+    } catch (_) {
+      return {};
+    }
+  }
+
+  /// Lấy username từ session JSON (key: "username")
+  static Future<String?> getUsername() async {
+    final session = await getSession();
+    if (session == null) return null;
+    try {
+      final data = jsonDecode(session) as Map<String, dynamic>;
+      return data['username'] as String?;
+    } catch (_) {
+      return null;
+    }
   }
 }

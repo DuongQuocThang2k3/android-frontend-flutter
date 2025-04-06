@@ -1,400 +1,235 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import '../services/location_service.dart';
+class MapScreen extends StatelessWidget {
+  const MapScreen({Key? key}) : super(key: key);
 
-class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  // Thông tin cơ bản
+  final String shopName = "Cherry Pet Shop";
+  final String welcomeText =
+      "Chào mừng quý khách đến với trang thông tin của Cherry Pet Shop!\n\n"
+      "Chúng tôi luôn nỗ lực mang đến dịch vụ chăm sóc thú cưng tốt nhất. "
+      "Hy vọng bạn sẽ có trải nghiệm tuyệt vời khi ghé thăm Cherry Pet Shop.";
 
-  @override
-  _MapScreenState createState() => _MapScreenState();
-}
+  final String aboutUs =
+      "Cherry Pet Shop là nơi bạn tìm thấy tất cả những gì tốt nhất cho thú cưng của mình. "
+      "Từ thức ăn chất lượng cao, đồ chơi an toàn đến dịch vụ tư vấn chuyên nghiệp, chúng tôi luôn sẵn sàng phục vụ.";
 
-class _MapScreenState extends State<MapScreen> {
-  final String geoapifyApiKey = "e5468ede2f0d4c96b0996c13d69f58bc";
-  late MapController mapController;
-  List<Marker> markers = [];
-  LatLng mapCenter = const LatLng(10.843312, 106.788597); // Địa chỉ shop mặc định
-  final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> _searchResults = [];
-  Timer? _debounce;
-  LatLng? displayedCoordinates; // Lưu tọa độ được hiển thị
-  List<LatLng> polylinePoints = []; // Danh sách điểm cho polyline
+  // Địa chỉ & link Google Maps
+  final String address =
+      "10/80c Song Hành Xa Lộ Hà Nội, Phường Tân Phú, Thủ Đức, Hồ Chí Minh, Việt Nam";
+  final String googleMapsLink = "https://maps.app.goo.gl/X5Dp41y4YijwrWC7A";
 
-  @override
-  void initState() {
-    super.initState();
-    mapController = MapController();
+  // Thông tin liên hệ
+  final String phoneNumber = "0123 456 789";
+  final String email = "contact@cherrypetshop.vn";
 
-    // Thêm marker mặc định tại vị trí shop
-    markers.add(
-      Marker(
-        point: mapCenter,
-        builder: (ctx) => Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            Positioned(
-              top: -30,
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 150),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4,
-                      offset: Offset(2, 2),
-                    ),
-                  ],
-                ),
-                child: const Text(
-                  "Cherry the Pet Shop",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  softWrap: true,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-            const Icon(
-              Icons.location_on,
-              color: Colors.black,
-              size: 40.0,
-            ),
-          ],
-        ),
-      ),
-    );
-    polylinePoints.add(mapCenter); // Thêm điểm mặc định vào polyline
-  }
+  // Link ứng dụng
+  final String appLink = "https://www.example.com/cherrypetshopapp";
 
-  Future<void> getCurrentLocation() async {
-    // Kiểm tra và yêu cầu quyền trước khi lấy vị trí
-    final hasPermission = await LocationService.checkAndRequestLocationPermission();
-    if (!hasPermission) {
-      _showErrorDialog("Quyền truy cập vị trí bị từ chối. Vui lòng cấp quyền để tiếp tục.");
-      return;
-    }
-
-    final position = await LocationService.getCurrentLocation();
-    if (position != null) {
-      setState(() {
-        mapCenter = LatLng(position.latitude, position.longitude);
-        displayedCoordinates = mapCenter;
-        markers.add(
-          Marker(
-            point: LatLng(position.latitude, position.longitude),
-            builder: (ctx) => const Icon(
-              Icons.my_location,
-              color: Colors.blue,
-              size: 40.0,
-            ),
-          ),
-        );
-        mapController.move(LatLng(position.latitude, position.longitude), 13.0);
-        polylinePoints.add(LatLng(position.latitude, position.longitude));
-      });
-    } else {
-      _showErrorDialog("Không thể lấy vị trí hiện tại. Vui lòng kiểm tra dịch vụ định vị.");
-    }
-  }
-
-  Future<void> searchLocation(String query) async {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-
-    _debounce = Timer(const Duration(milliseconds: 300), () async {
-      if (query.isEmpty) {
-        setState(() {
-          _searchResults = [];
-        });
-        return;
-      }
-
-      final String url =
-          "https://api.geoapify.com/v1/geocode/autocomplete?text=$query&apiKey=$geoapifyApiKey";
-
-      try {
-        final response = await http.get(Uri.parse(url));
-
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-          if (data['features'].isNotEmpty) {
-            setState(() {
-              _searchResults = data['features']
-                  .map<Map<String, dynamic>>((feature) => {
-                'name': feature['properties']['formatted'],
-                'lat': feature['geometry']['coordinates'][1],
-                'lon': feature['geometry']['coordinates'][0],
-              })
-                  .toList();
-            });
-          } else {
-            setState(() {
-              _searchResults = [];
-            });
-          }
-        } else {
-          _showErrorDialog("Lỗi khi tìm kiếm địa chỉ.");
-        }
-      } catch (e) {
-        _showErrorDialog("Lỗi kết nối mạng: $e");
-      }
-    });
-  }
-
-  void moveToLocation(double lat, double lon, String name) {
-    setState(() {
-      mapCenter = LatLng(lat, lon);
-      displayedCoordinates = mapCenter;
-      markers.add(
-        Marker(
-          point: LatLng(lat, lon),
-          builder: (ctx) => const Icon(
-            Icons.location_on,
-            color: Colors.red,
-            size: 40.0,
-          ),
-        ),
-      );
-      mapController.move(LatLng(lat, lon), 13.0);
-      polylinePoints.add(LatLng(lat, lon));
-      _searchResults = [];
-    });
-  }
-
-  void resetMap() {
-    setState(() {
-      // Quay lại vị trí mặc định
-      mapController.move(mapCenter, 13.0);
-
-      // Làm sạch marker và polyline, sau đó thêm lại marker mặc định
-      markers = [
-        Marker(
-          point: mapCenter,
-          builder: (ctx) => Stack(
-            alignment: Alignment.center,
-            clipBehavior: Clip.none,
-            children: [
-              Positioned(
-                top: -30,
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 150),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.black87,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 4,
-                        offset: Offset(2, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    "Cherry the Pet Shop",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-              const Icon(
-                Icons.location_on,
-                color: Colors.black,
-                size: 40.0,
-              ),
-            ],
-          ),
-        ),
-      ];
-
-      // Làm sạch danh sách polyline và thêm điểm mặc định
-      polylinePoints = [mapCenter];
-
-      // Hiển thị SnackBar thông báo
+  // Hàm mở Google Maps
+  Future<void> _openGoogleMaps(BuildContext context) async {
+    final Uri googleUrl = Uri.parse(googleMapsLink);
+    if (!await launchUrl(googleUrl)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Đã reset bản đồ về vị trí Cherry the Pet Shop."),
-          duration: Duration(seconds: 2),
-        ),
+        const SnackBar(content: Text("Không thể mở Google Maps.")),
       );
-    });
+    }
   }
 
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Lỗi"),
-        content: Text(message),
-        actions: [
-          TextButton(
-            child: const Text("OK"),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
-          ),
-        ],
-      ),
-    );
+  // Hàm mở Link ứng dụng
+  Future<void> _openApp(BuildContext context) async {
+    final Uri appUri = Uri.parse(appLink);
+    if (!await launchUrl(appUri)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Không thể mở trang ứng dụng.")),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // AppBar
       appBar: AppBar(
-        title: const Text("Geoapify Map Tracking"),
+        title: Text(shopName),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
-      body: Stack(
-        children: [
-          FlutterMap(
-            mapController: mapController,
-            options: MapOptions(
-              center: mapCenter,
-              zoom: 13.0,
-              onTap: (tapPosition, latlng) {
-                setState(() {
-                  displayedCoordinates = latlng;
-                  markers.add(
-                    Marker(
-                      point: latlng,
-                      builder: (ctx) => const Icon(
-                        Icons.location_on,
-                        color: Colors.green,
-                        size: 40.0,
-                      ),
-                    ),
-                  );
-                  polylinePoints.add(latlng);
-                });
-              },
-            ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                "https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=$geoapifyApiKey",
-                userAgentPackageName: 'com.example.app',
-              ),
-              MarkerLayer(markers: markers),
-              PolylineLayer(
-                polylines: [
-                  Polyline(
-                    points: polylinePoints,
-                    strokeWidth: 4.0,
-                    color: Colors.blue,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Positioned(
-            top: 20,
-            left: 20,
-            right: 20,
-            child: Column(
-              children: [
-                TextField(
-                  controller: _searchController,
-                  onChanged: (value) => searchLocation(value),
-                  decoration: const InputDecoration(
-                    hintText: "Nhập địa chỉ",
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
-                if (_searchResults.isNotEmpty)
-                  Container(
-                    color: Colors.white,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _searchResults.length,
-                      itemBuilder: (ctx, index) {
-                        final result = _searchResults[index];
-                        return ListTile(
-                          title: Text(result['name']),
-                          onTap: () => moveToLocation(
-                            result['lat'],
-                            result['lon'],
-                            result['name'],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Positioned(
-            bottom: 20,
-            left: 20,
-            child: FloatingActionButton(
-              onPressed: getCurrentLocation,
-              backgroundColor: Colors.blue,
-              child: const Icon(Icons.my_location, color: Colors.white),
-            ),
-          ),
-          Positioned(
-            bottom: 80,
-            left: 20,
-            child: FloatingActionButton(
-              onPressed: resetMap,
-              backgroundColor: Colors.red,
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.refresh, color: Colors.white),
-                  Text(
-                    "Reset",
-                    style: TextStyle(fontSize: 10, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: Container(
-              padding: const EdgeInsets.all(10),
+
+      // Body
+      body: SingleChildScrollView(
+        // Thêm padding dưới để tránh bị che bởi thanh navigation
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Phần chào mừng
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(2, 2),
-                  ),
-                ],
+                color: Colors.blueGrey[50],
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                displayedCoordinates != null
-                    ? "Lat: ${displayedCoordinates!.latitude.toStringAsFixed(6)}\nLng: ${displayedCoordinates!.longitude.toStringAsFixed(6)}"
-                    : "Chưa có tọa độ",
-                style: const TextStyle(fontSize: 14),
+                welcomeText,
+                style: const TextStyle(
+                  fontSize: 15,
+                  height: 1.4,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
-          ),
-        ],
+
+            // Khung giới thiệu
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Về Cherry Pet Shop",
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green[800],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    aboutUs,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.justify,
+                  ),
+                ],
+              ),
+            ),
+
+            // Khung thông tin chính
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade300,
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Icon đánh dấu địa chỉ
+                  Center(
+                    child: Icon(
+                      Icons.location_on,
+                      size: 40,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Địa chỉ
+                  Center(
+                    child: Text(
+                      address,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Mở Google Maps khi nhấn
+                  Center(
+                    child: GestureDetector(
+                      onTap: () => _openGoogleMaps(context),
+                      child: Text(
+                        "Nhấn để xem trên Google Maps",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.blue[700],
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Divider(color: Colors.grey[300], thickness: 1),
+                  const SizedBox(height: 8),
+
+                  // Số điện thoại
+                  Row(
+                    children: [
+                      Icon(Icons.phone, color: Colors.green[700]),
+                      const SizedBox(width: 8),
+                      Text(
+                        phoneNumber,
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Email
+                  Row(
+                    children: [
+                      Icon(Icons.email, color: Colors.red[300]),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          email,
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            GestureDetector(
+              onTap: () => _openApp(context),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(top: 16),
+                decoration: BoxDecoration(
+                  color: Colors.purple[50],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  "Trải nghiệm đặt lịch, nhận thông báo và ưu đãi độc quyền trên ứng dụng di động của Cherry Pet Shop."
+                  "\n",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 15),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
