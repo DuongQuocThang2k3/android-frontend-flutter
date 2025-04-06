@@ -17,6 +17,7 @@ class Order {
     required this.orderDetails,
   });
 
+  /// JSON cho POST, chưa có trường user
   Map<String, dynamic> toJson() => {
         'orderId': orderId,
         'userId': userId,
@@ -25,4 +26,11 @@ class Order {
         'status': status,
         'orderDetails': orderDetails.map((d) => d.toJson()).toList(),
       };
+
+  /// JSON cho POST, kèm thêm object user
+  Map<String, dynamic> toJsonWithUser(Map<String, dynamic> userJson) {
+    final m = toJson();
+    m['user'] = userJson;
+    return m;
+  }
 }

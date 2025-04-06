@@ -54,6 +54,10 @@ class UserModel {
 
   bool get isAdmin => role == 'Admin';
 
+  get phoneNumber => null;
+
+  get address => null;
+
   static void setCurrentUser(UserModel user) {
     currentUser = user;
   }

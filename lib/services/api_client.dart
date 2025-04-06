@@ -21,8 +21,11 @@ class ApiClient {
   }
 
   Future<http.Response> post(String endpoint,
-      {Map<String, String>? headers, dynamic body}) async {
-    final builtHeaders = await _buildHeaders(headers);
+      {Map<String, String>? headers,
+      dynamic body,
+      bool requiresAuth = true}) async {
+    final builtHeaders =
+        await _buildHeaders(headers, requiresAuth: requiresAuth);
     return await http.post(
       Uri.parse('$baseUrl$endpoint'),
       headers: builtHeaders,
@@ -49,17 +52,18 @@ class ApiClient {
     );
   }
 
-  // Hàm xây dựng headers, tự động thêm token nếu có
-  Future<Map<String, String>> _buildHeaders(
-      Map<String, String>? headers) async {
+  Future<Map<String, String>> _buildHeaders(Map<String, String>? headers,
+      {bool requiresAuth = true}) async {
     final Map<String, String> defaultHeaders = {
       'Content-Type': 'application/json'
     };
 
-    // Lấy token từ TokenManager và thêm vào header Authorization nếu tồn tại
-    final token = await TokenManager.getToken();
-    if (token != null) {
-      defaultHeaders['Authorization'] = 'Bearer $token';
+    // Chỉ thêm header Authorization nếu requiresAuth là true
+    if (requiresAuth) {
+      final token = await TokenManager.getToken();
+      if (token != null) {
+        defaultHeaders['Authorization'] = 'Bearer $token';
+      }
     }
 
     if (headers != null) {

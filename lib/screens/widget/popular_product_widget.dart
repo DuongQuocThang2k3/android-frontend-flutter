@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:the_cherry_pet_shop/config/config_url.dart';
-import '../../models/pet_service_model.dart';
-import '../apoinment/servicedetail_screen.dart';
 
+import 'package:flutter/material.dart';
+
+import '../../models/pet_service_model.dart';
+import '../../services/api_client.dart';
+import '../apoinment/servicedetail_screen.dart';
 
 class PopularServiceWidget extends StatefulWidget {
   const PopularServiceWidget({super.key});
@@ -15,6 +15,7 @@ class PopularServiceWidget extends StatefulWidget {
 
 class _PopularServiceWidgetState extends State<PopularServiceWidget> {
   late Future<List<PetService>> _services;
+  final ApiClient _apiClient = ApiClient();
 
   @override
   void initState() {
@@ -23,23 +24,23 @@ class _PopularServiceWidgetState extends State<PopularServiceWidget> {
   }
 
   Future<List<PetService>> _fetchServices() async {
-    final String apiUrl = '${Config_URL.baseUrl}Service';
     try {
-      final response = await http.get(Uri.parse(apiUrl));
-      print('API Response: ${response.body}'); // In ra dữ liệu trả về từ API
+      // ApiClient sẽ tự động thêm baseUrl và header Authorization nếu có token :contentReference[oaicite:0]{index=0}
+      final response = await _apiClient.get('/Service');
+      debugPrint('API Response: ${response.body}');
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        print('Parsed Data: $data'); // In ra dữ liệu đã parse
-        return data.map((json) => PetService.fromJson(json)).toList();
+        debugPrint('Parsed Data: $data');
+        return data.map((e) => PetService.fromJson(e)).toList();
       } else {
-        throw Exception('Failed to load services with status: ${response.statusCode}');
+        throw Exception(
+            'Failed to load services (status ${response.statusCode})');
       }
     } catch (e) {
-      print('Error: $e'); // In ra lỗi nếu có
-      throw Exception('Failed to load services: $e');
+      debugPrint('Error fetching services: $e');
+      rethrow;
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +69,7 @@ class _PopularServiceWidgetState extends State<PopularServiceWidget> {
                     style: const TextStyle(color: Colors.red),
                   ),
                 );
-              } else if (snapshot.hasData) {
+              } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                 final services = snapshot.data!;
                 return ListView.separated(
                   scrollDirection: Axis.horizontal,
@@ -79,11 +80,11 @@ class _PopularServiceWidgetState extends State<PopularServiceWidget> {
                     final service = services[index];
                     return GestureDetector(
                       onTap: () {
-                        // Chuyển sang màn hình chi tiết dịch vụ
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ServiceDetailScreen(service: service),
+                            builder: (_) =>
+                                ServiceDetailScreen(service: service),
                           ),
                         );
                       },
@@ -104,31 +105,27 @@ class _PopularServiceWidgetState extends State<PopularServiceWidget> {
                         ),
                         child: Column(
                           children: [
-                            // Hình ảnh dịch vụ
                             Container(
                               width: 220,
                               height: 180,
                               decoration: const BoxDecoration(
                                 borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(16),
-                                ),
+                                    top: Radius.circular(16)),
                               ),
                               child: ClipRRect(
                                 borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(16),
-                                ),
+                                    top: Radius.circular(16)),
                                 child: Image.network(
                                   service.images.isNotEmpty
                                       ? service.images[0].url
                                       : 'https://via.placeholder.com/220x180',
                                   fit: BoxFit.cover,
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
+                                  loadingBuilder: (ctx, child, prog) {
+                                    if (prog == null) return child;
                                     return const Center(
-                                      child: CircularProgressIndicator(),
-                                    );
+                                        child: CircularProgressIndicator());
                                   },
-                                  errorBuilder: (context, error, stackTrace) {
+                                  errorBuilder: (_, __, ___) {
                                     return Container(
                                       color: Colors.grey[200],
                                       child: const Icon(Icons.broken_image, color: Colors.red),
@@ -137,7 +134,6 @@ class _PopularServiceWidgetState extends State<PopularServiceWidget> {
                                 ),
                               ),
                             ),
-                            // Tên dịch vụ
                             Padding(
                               padding: const EdgeInsets.all(10),
                               child: Text(

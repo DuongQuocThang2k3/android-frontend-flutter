@@ -75,10 +75,35 @@ class _RegistrationScreenState extends State<RegistrationScreen>
     setState(() => _isLoading = false);
 
     if (result['success'] == true) {
+      // Hiển thị SnackBar màu xanh khi thành công
+      _showSuccessSnackBar(result['message'] ?? 'Đăng ký thành công!');
+      // Giữ lại dialog thành công nếu muốn
       _showSuccessDialog();
     } else {
       _showErrorSnackBar(result['message'] ?? 'Đăng ký thất bại');
     }
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_outline,
+                color: Colors.white, size: 16),
+            const SizedBox(width: 5),
+            Expanded(
+                child: Text(message, style: const TextStyle(fontSize: 12))),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        // Màu xanh cho thành công
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: const EdgeInsets.all(8),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _showSuccessDialog() {
@@ -158,6 +183,7 @@ class _RegistrationScreenState extends State<RegistrationScreen>
           ],
         ),
         backgroundColor: Colors.redAccent,
+        // Màu đỏ cho lỗi
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         margin: const EdgeInsets.all(8),
@@ -204,7 +230,6 @@ class _RegistrationScreenState extends State<RegistrationScreen>
         child: SafeArea(
           child: Column(
             children: [
-              // Tiêu đề đăng ký
               Padding(
                 padding: const EdgeInsets.only(top: 0, bottom: 4),
                 child: Text(
@@ -225,8 +250,6 @@ class _RegistrationScreenState extends State<RegistrationScreen>
                   color: Colors.grey[700],
                 ),
               ),
-
-              // Form đăng ký (phần cuộn)
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(
@@ -386,8 +409,6 @@ class _RegistrationScreenState extends State<RegistrationScreen>
                   ),
                 ),
               ),
-
-              // Nút đăng nhập ở dưới cùng
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: TextButton(

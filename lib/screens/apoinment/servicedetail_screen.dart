@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/pet_service_model.dart';
+import '../../shared_preferences/token_manager.dart';
 import 'appointment_screen.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
@@ -23,12 +23,16 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   }
 
   Future<void> _loadUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId');
-    print("User ID được lấy: $userId");
+    // Lấy userId từ TokenManager (tự decode token hoặc session) :contentReference[oaicite:0]{index=0}
+    final id = await TokenManager.getUserId();
+    debugPrint("User ID được lấy: $id");
     setState(() {
-      _userId = userId; // Gán userId
+      _userId = id;
     });
+
+    // Nếu bạn đã lưu toàn bộ UserModel khi login, có thể dùng:
+    // final user = UserModel.currentUser;
+    // setState(() { _userId = user?.id; });
   }
 
   @override
@@ -54,9 +58,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
-                  image: NetworkImage(widget.service.images.isNotEmpty
-                      ? widget.service.images[0].url
-                      : 'https://via.placeholder.com/250x250'),
+                  image: NetworkImage(
+                    widget.service.images.isNotEmpty
+                        ? widget.service.images[0].url
+                        : 'https://via.placeholder.com/250x250',
+                  ),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -91,12 +97,12 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               child: ElevatedButton(
                 onPressed: _userId != null
                     ? () {
-                  print("User ID hợp lệ: $_userId");
-                  Navigator.push(
+                        debugPrint("User ID hợp lệ: $_userId");
+                        Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AppointmentScreen(
-                        service: widget.service,
+                            builder: (_) => AppointmentScreen(
+                              service: widget.service,
                         userId: _userId!,
                       ),
                     ),

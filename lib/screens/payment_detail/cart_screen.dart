@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:the_cherry_pet_shop/models/cart_item.dart';
+import 'package:the_cherry_pet_shop/screens/payment_detail/payment_screen.dart';
 import 'package:the_cherry_pet_shop/shared_preferences/token_manager.dart';
 
 class CartScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   List<CartItem> _cart = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -35,6 +37,55 @@ class _CartScreenState extends State<CartScreen> {
     return NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(value);
   }
 
+  Future<void> _proceedToCheckout() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Check if user is logged in
+      final token = await TokenManager.getToken();
+      final session = await TokenManager.getSession();
+
+      if (token == null || session == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vui lòng đăng nhập để thanh toán'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // Get user information
+      final phone = await TokenManager.getUserPhone() ?? '';
+      final address = await TokenManager.getUserAddress() ?? '';
+
+      // Navigate to payment screen
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PaymentScreen(
+              productName: 'Giỏ hàng (${_cart.length} sản phẩm)',
+              price: _totalAll,
+              userPhone: phone,
+              userAddress: address,
+            ),
+          ),
+        ).then((_) => _loadCart()); // Refresh cart when returning
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,23 +97,32 @@ class _CartScreenState extends State<CartScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.separated(
-              itemCount: _cart.length,
+            child: _cart.isEmpty
+                ? const Center(
+                    child: Text(
+                      'Giỏ hàng trống',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: _cart.length,
               separatorBuilder: (_, __) =>
-                  const Divider(height: 1, color: Colors.grey),
-              itemBuilder: (context, i) {
+                        const Divider(height: 1, color: Colors.grey),
+                    itemBuilder: (context, i) {
                 final item = _cart[i];
                 return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  elevation: 4,
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        elevation: 4,
                   child: ListTile(
                     title: Text(item.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text(
                       'Đơn giá: ${_formatVnd(item.unitPrice)}\nSố lượng: ${item.quantity}',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey),
+                          ),
                     trailing: _buildQuantityControl(item, i),
                     isThreeLine: true,
                   ),
@@ -114,14 +174,7 @@ class _CartScreenState extends State<CartScreen> {
       child: Column(
         children: [
           ElevatedButton(
-            onPressed: _cart.isEmpty
-                ? null
-                : () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Thanh toán thành công')),
-                    );
-                    TokenManager.clearCart().then((_) => _loadCart());
-                  },
+            onPressed: _cart.isEmpty || _isLoading ? null : _proceedToCheckout,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
               minimumSize: const Size.fromHeight(48),
@@ -129,8 +182,17 @@ class _CartScreenState extends State<CartScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'Thanh toán',
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text(
+                    'Thanh toán',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),

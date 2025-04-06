@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/cart_item.dart';
 import '../../models/product_model.dart';
 import '../../shared_preferences/token_manager.dart';
+import '../payment_detail/cart_screen.dart';
 import '../payment_detail/payment_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -48,8 +49,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart),
-            onPressed: () => Navigator.pushNamed(context, '/cart'),
-          )
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CartScreen()),
+              );
+            },
+          ),
         ],
       ),
       body: Column(

@@ -1,8 +1,10 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../config/config_url.dart';
+
+import '../../models/user_model.dart';
+import '../../services/api_client.dart';
+import '../../shared_preferences/token_manager.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String productName;
@@ -26,24 +28,44 @@ class _PaymentScreenState extends State<PaymentScreen> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
-  String? _username; // Username từ SharedPreferences
   bool _isLoading = false;
+  final ApiClient _apiClient = ApiClient();
+  UserModel? _user;
 
   @override
   void initState() {
     super.initState();
-    _loadUsername();
-    _nameController = TextEditingController(text: 'Người mua');
-    _phoneController = TextEditingController(text: widget.userPhone);
-    _addressController = TextEditingController(text: widget.userAddress);
+    _loadUser();
   }
 
-  // Hàm lấy username từ SharedPreferences
-  Future<void> _loadUsername() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _username = prefs.getString('username') ?? 'Unknown';
-    });
+  Future<void> _loadUser() async {
+    final session = await TokenManager.getSession();
+    if (session != null) {
+      try {
+        final data = json.decode(session) as Map<String, dynamic>;
+        // Giả sử thông tin user được lưu dưới key 'user_info'
+        final userJson = data['user_info'] as Map<String, dynamic>;
+        _user = UserModel.fromJson(userJson);
+        UserModel.setCurrentUser(_user!);
+      } catch (e) {
+        debugPrint("Lỗi parse session: $e");
+      }
+    }
+    // Khởi tạo các controller với dữ liệu từ user (nếu có), hoặc dùng giá trị truyền vào
+    _nameController = TextEditingController(text: _user?.fullName ?? '');
+    _phoneController =
+        TextEditingController(text: _user?.phoneNumber ?? widget.userPhone);
+    _addressController =
+        TextEditingController(text: _user?.address ?? widget.userAddress);
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    super.dispose();
   }
 
   Future<void> _placeOrder() async {
@@ -51,79 +73,93 @@ class _PaymentScreenState extends State<PaymentScreen> {
       _isLoading = true;
     });
 
-    if (_username == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lỗi: Không tìm thấy thông tin người dùng')),
-      );
-      setState(() {
-        _isLoading = false;
-      });
-      return;
-    }
-
-    final orderData = {
-      "orderId": 0,
-      "userId": "12345", // ID người dùng (cần thay bằng ID thực tế nếu có)
-      "user": {
-        "id": "12345", // ID người dùng
-        "userName": _username,
-        "normalizedUserName": _username?.toUpperCase(),
-        "email": "example@email.com",
-        "normalizedEmail": "EXAMPLE@EMAIL.COM",
-        "emailConfirmed": true,
-        "passwordHash": "hashedpassword",
-        "securityStamp": "randomstring",
-        "concurrencyStamp": "randomstring",
-        "phoneNumber": _phoneController.text,
-        "phoneNumberConfirmed": true,
-        "twoFactorEnabled": false,
-        "lockoutEnd": null,
-        "lockoutEnabled": false,
-        "accessFailedCount": 0,
-        "address": _addressController.text,
-        "fullName": _nameController.text,
-        "appointments": [],
-        "orders": [],
-        "passwordResetCode": null,
-        "resetCodeExpiration": null,
-        "previousPasswordResetCode": null
-      },
-      "orderDate": DateTime.now().toIso8601String(),
-      "totalPrice": widget.price,
-      "status": "Pending",
-      "orderDetails": [
-        {
-          "id": 0,
-          "orderId": 0,
-          "order": null,
-          "productType": "Product",
-          "productId": 1,
-          "petId": 0,
-          "quantity": 1,
-          "price": widget.price,
-        }
-      ]
-    };
-
     try {
-      final response = await http.post(
-        Uri.parse('${Config_URL.baseUrl}Order'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(orderData),
+      final userId = _user?.id ?? await TokenManager.getUserId();
+      final token = await TokenManager.getToken();
+      final cart = await TokenManager.getCart();
+
+      if (userId == null || token == null) {
+        throw Exception('Không tìm thấy thông tin người dùng');
+      }
+
+      // Tạo orderDetails từ cart nếu có, hoặc tạo mặc định nếu cart rỗng
+      List<Map<String, dynamic>> orderDetails;
+      if (cart.isEmpty) {
+        orderDetails = [
+          {
+            "id": 0,
+            "orderId": 0,
+            "order": null,
+            "productType": "Product",
+            "productId": 1, // Thay thế bằng ID thực nếu cần
+            "petId": 0,
+            "quantity": 1,
+            "price": widget.price,
+          }
+        ];
+      } else {
+        orderDetails = cart
+            .map((item) => {
+                  "id": 0,
+                  "orderId": 0,
+                  "order": null,
+                  "productType": item.productType ?? "Product",
+                  "productId": item.productId,
+                  "petId": 0,
+                  "quantity": item.quantity,
+                  "price": item.unitPrice,
+                })
+            .toList();
+      }
+
+      final orderData = {
+        "orderId": 0,
+        "userId": userId,
+        "orderDate": DateTime.now().toIso8601String(),
+        "totalPrice": widget.price,
+        "status": "Pending",
+        "orderDetails": orderDetails,
+        // Thông tin người dùng gửi kèm đơn hàng
+        "user": {
+          "id": userId,
+          "fullName": _nameController.text,
+          "phoneNumber": _phoneController.text,
+          "address": _addressController.text,
+        }
+      };
+
+      // Sử dụng ApiClient để gọi API đặt hàng
+      final response = await _apiClient.post(
+        'Order',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: orderData,
       );
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Xóa giỏ hàng sau khi đặt hàng thành công
+        await TokenManager.clearCart();
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đặt hàng thành công!')),
+          const SnackBar(
+            content: Text('Đặt hàng thành công!'),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pop(context);
       } else {
         throw Exception(
-            'Failed to place order. Status code: ${response.statusCode}\nBody: ${response.body}');
+          'Lỗi khi đặt hàng. Mã lỗi: ${response.statusCode}\nNội dung: ${response.body}',
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error placing order: $e')),
+        SnackBar(
+          content: Text('Lỗi: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       setState(() {
@@ -132,10 +168,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
+    // Nếu thông tin user chưa được nạp, hiển thị loading
+    if (_user == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thanh Toán'),
@@ -147,51 +188,108 @@ class _PaymentScreenState extends State<PaymentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                widget.productName,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Giá: ${widget.price.toStringAsFixed(0)} VND',
-                style: const TextStyle(fontSize: 16, color: Colors.blue),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Thông tin người mua:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Tên tài khoản: $_username',
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Họ và Tên',
-                  border: OutlineInputBorder(),
+              // Thẻ thông tin sản phẩm
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.productName,
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Giá: ${widget.price.toStringAsFixed(0)} VND',
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.blue),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Số điện thoại',
-                  border: OutlineInputBorder(),
+              const SizedBox(height: 20),
+              // Thẻ thông tin người mua
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Thông tin người mua:',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: 'Họ và Tên *',
+                          hintText: 'Nhập họ và tên của bạn',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          prefixIcon: const Icon(Icons.person),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: 'Số điện thoại *',
+                          hintText: 'Nhập số điện thoại của bạn',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          prefixIcon: const Icon(Icons.phone),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _addressController,
+                        decoration: InputDecoration(
+                          labelText: 'Địa chỉ *',
+                          hintText: 'Nhập địa chỉ giao hàng của bạn',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          prefixIcon: const Icon(Icons.location_on),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '* Thông tin bắt buộc',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Địa chỉ',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
+              // Nút xác nhận thanh toán
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -203,9 +301,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         _addressController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text('Vui lòng điền đầy đủ thông tin!')),
-                      );
-                      return;
+                                content:
+                                    Text('Vui lòng điền đầy đủ thông tin!'),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                            return;
                     }
                     _placeOrder();
                   },
@@ -215,14 +316,24 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.0),
                     ),
+                    elevation: 4,
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : const Text(
-                    'THANH TOÁN',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                          'XÁC NHẬN THANH TOÁN',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],

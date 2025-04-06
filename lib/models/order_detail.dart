@@ -1,7 +1,7 @@
 class OrderDetail {
   int id;
   int orderId;
-  String productType; // "Pet" hoặc "Product"
+  String productType;
   int? productId;
   int? petId;
   int quantity;
