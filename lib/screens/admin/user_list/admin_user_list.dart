@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../config/config_url.dart';
-import 'admin_screen.dart';
+import '../../../config/config_url.dart';
+import '../admin_screen.dart';
 
 class AdminUserList extends StatefulWidget {
   const AdminUserList({super.key});

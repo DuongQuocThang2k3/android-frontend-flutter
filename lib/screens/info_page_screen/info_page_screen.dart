@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class MapScreen extends StatelessWidget {
-  const MapScreen({Key? key}) : super(key: key);
+class InfoPageScreen extends StatelessWidget {
+  const InfoPageScreen({Key? key}) : super(key: key);
 
   // Thông tin cơ bản
   final String shopName = "Cherry Pet Shop";

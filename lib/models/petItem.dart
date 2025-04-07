@@ -26,6 +26,19 @@ class PetItem {
         ? rawPrice.toDouble()
         : double.tryParse(rawPrice?.toString() ?? '') ?? 0.0;
 
+    // API có thể trả về images dưới dạng List<Map> với key "ImageUrl"
+    final imgs = (json['images'] as List<dynamic>?)
+            ?.map((e) {
+              if (e is Map<String, dynamic>) {
+                // thử cả hai key 'url' và 'ImageUrl'
+                return (e['ImageUrl'] ?? e['url']) as String? ?? '';
+              }
+              return '';
+            })
+            .where((s) => s.isNotEmpty)
+            .toList() ??
+        [];
+
     return PetItem(
       petId: json['petId'] as int,
       name: json['name'] as String? ?? '',
@@ -33,10 +46,7 @@ class PetItem {
       price: price,
       description: json['description'] as String? ?? '',
       categoryId: json['categoryId'] as int? ?? 0,
-      images: (json['images'] as List<dynamic>?)
-              ?.map((e) => e['url'] as String)
-              .toList() ??
-          [],
+      images: imgs,
       status: json['status'] as String? ?? '',
     );
   }
@@ -53,8 +63,8 @@ class PetItem {
       'status': status,
       'images': images
           .map((url) => {
-                'petId': petId,
-                'url': url,
+                'PetId': petId,
+                'ImageUrl': url,
               })
           .toList(),
     };

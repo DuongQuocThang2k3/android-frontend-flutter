@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:the_cherry_pet_shop/screens/admin/pet_list/admin_pet_list.dart';
+import 'package:the_cherry_pet_shop/screens/admin/product_list/admin_product_list.dart';
+import 'package:the_cherry_pet_shop/screens/admin/service_list/admin_service_list.dart';
+import 'package:the_cherry_pet_shop/screens/admin/user_role.dart';
 
-import 'pets_list/admin_pets_list.dart';
-import '../admin/admin_productlist.dart';
-import '../admin/admin_service.dart';
-import 'admin_order_list.dart';
 import 'admin_roleclaim.dart';
-import 'admin_user_list.dart';
-import 'user_role.dart';
+import 'order_list/admin_order_list.dart';
+import 'user_list/admin_user_list.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
@@ -19,7 +19,7 @@ class AdminScreen extends StatelessWidget {
         'title': 'Quản lý thú cưng',
         'icon': Icons.pets,
         'color': Colors.blue.shade700,
-        'route': const AdminPetsList(),
+        'route': const AdminPetList(),
       },
       {
         'title': 'Quản lý sản phẩm',

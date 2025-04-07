@@ -2,13 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:the_cherry_pet_shop/models/user_model.dart';
-import 'package:the_cherry_pet_shop/screens/map_screen.dart';
 import 'package:the_cherry_pet_shop/screens/post_list_screen.dart';
 import 'package:the_cherry_pet_shop/shared_preferences/token_manager.dart';
 
 import 'account_screen.dart';
 import 'admin/admin_screen.dart';
 import 'home_screen.dart';
+import 'info_page_screen/info_page_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -31,7 +31,7 @@ class _MainScreenState extends State<MainScreen> {
     _screens = [
       const HomeScreen(),
       const PostListScreen(),
-      MapScreen(),
+      InfoPageScreen(),
       const AccountScreen(),
     ];
     _checkUserRole();
@@ -57,7 +57,7 @@ class _MainScreenState extends State<MainScreen> {
       _screens = [
         const HomeScreen(),
         const PostListScreen(),
-        MapScreen(),
+        InfoPageScreen(),
         if (isAdmin) const AdminScreen(),
         const AccountScreen(),
       ];

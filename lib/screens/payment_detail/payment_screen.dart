@@ -13,12 +13,12 @@ class PaymentScreen extends StatefulWidget {
   final String userAddress;
 
   const PaymentScreen({
-    super.key,
+    Key? key,
     required this.productName,
     required this.price,
     required this.userPhone,
     required this.userAddress,
-  });
+  }) : super(key: key);
 
   @override
   _PaymentScreenState createState() => _PaymentScreenState();
@@ -35,28 +35,32 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUser();
+    _initializeControllers();
   }
 
-  // Load thông tin người dùng đã lưu từ login (user_info được lưu vào TokenManager)
-  Future<void> _loadUser() async {
+  Future<void> _initializeControllers() async {
+    // Load session and parse user
     final session = await TokenManager.getSession();
     if (session != null) {
       try {
         final data = json.decode(session) as Map<String, dynamic>;
-        // Giả sử thông tin user được lưu dưới key 'user_info'
         final userJson = data['user_info'] as Map<String, dynamic>;
         _user = UserModel.fromJson(userJson);
         UserModel.setCurrentUser(_user!);
       } catch (e) {
-        debugPrint("Lỗi parse session: $e");
+        debugPrint('Lỗi parse session: $e');
       }
     }
+
+    // Await async getters
+    final phone = _user != null ? await _user!.phoneNumber : widget.userPhone;
+    final addr = _user != null ? await _user!.address : widget.userAddress;
+
+    // Initialize controllers
     _nameController = TextEditingController(text: _user?.fullName ?? '');
-    _phoneController =
-        TextEditingController(text: _user?.phoneNumber ?? widget.userPhone);
-    _addressController =
-        TextEditingController(text: _user?.address ?? widget.userAddress);
+    _phoneController = TextEditingController(text: phone);
+    _addressController = TextEditingController(text: addr);
+
     setState(() {});
   }
 
@@ -69,12 +73,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _placeOrder() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      // Vì token không chứa id cụ thể, sử dụng username làm định danh
       final username = _user?.username;
       final token = await TokenManager.getToken();
       final cart = await TokenManager.getCart();
@@ -83,59 +84,43 @@ class _PaymentScreenState extends State<PaymentScreen> {
         throw Exception('Không tìm thấy thông tin người dùng');
       }
 
-      // Tạo orderDetails từ cart nếu có, hoặc tạo mặc định nếu cart rỗng
-      List<Map<String, dynamic>> orderDetails;
-      if (cart.isEmpty) {
-        orderDetails = [
-          {
-            "productType": "Product",
-            "productId": 1, // Thay thế bằng ID thực nếu cần
-            "quantity": 1,
-            "price": widget.price,
-          }
-        ];
-      } else {
-        orderDetails = cart
-            .map((item) => {
-                  "productType": item.productType ?? "Product",
-                  "productId": item.productId,
-                  "quantity": item.quantity,
-                  "price": item.unitPrice,
-                })
-            .toList();
-      }
+      final orderDetails = cart.isNotEmpty
+          ? cart
+              .map((item) => {
+                    'productType': item.productType ?? 'Product',
+                    'productId': item.productId,
+                    'quantity': item.quantity,
+                    'price': item.unitPrice,
+                  })
+              .toList()
+          : [
+              {
+                'productType': 'Product',
+                'productId': 1,
+                'quantity': 1,
+                'price': widget.price,
+              }
+            ];
 
-      // Sử dụng username làm định danh (UserId) nếu server chấp nhận
       final orderData = {
-        "UserId": username, // Sử dụng username thay cho id
-        "orderDate": DateTime.now().toIso8601String(),
-        "totalPrice": widget.price,
-        "status": "Pending",
-        "orderDetails": orderDetails,
-        // Thông tin người dùng gửi kèm đơn hàng
-        "user": {
-          "fullName": _nameController.text,
-          "phoneNumber": _phoneController.text,
-          "address": _addressController.text,
-        }
+        'UserId': username,
+        'orderDate': DateTime.now().toIso8601String(),
+        'totalPrice': widget.price,
+        'status': 'Pending',
+        'orderDetails': orderDetails,
+        'user': {
+          'fullName': _nameController.text.trim(),
+          'phoneNumber': _phoneController.text.trim(),
+          'address': _addressController.text.trim(),
+        },
       };
 
-      // In ra URL và dữ liệu đơn hàng để debug
-      final orderUrl =
-          '${_apiClient.baseUrl}Order'; // Hoặc '/api/Order' nếu cần
-      debugPrint('Order URL: $orderUrl');
-      debugPrint('Order Data: ${json.encode(orderData)}');
-
-      final response = await _apiClient.post(
-        'Order', // Nếu endpoint thực sự là '/api/Order', hãy thay đổi ở đây
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+      final resp = await _apiClient.post(
+        'Order',
         body: orderData,
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
         await TokenManager.clearCart();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -145,27 +130,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
         );
         Navigator.pop(context);
       } else {
-        throw Exception(
-          'Lỗi khi đặt hàng. Mã lỗi: ${response.statusCode}\nNội dung: ${response.body}',
-        );
+        throw Exception('Lỗi khi đặt hàng: ${resp.statusCode}\n${resp.body}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Lỗi: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Nếu thông tin user chưa được nạp, hiển thị loading
     if (_user == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -178,124 +155,97 @@ class _PaymentScreenState extends State<PaymentScreen> {
         backgroundColor: Colors.blue,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Hiển thị username lấy từ TokenManager/UserModel
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Text(
-                  'Tài khoản: ${_user!.username}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              Text(
+                'Tài khoản: ${_user!.username}',
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              // Thẻ thông tin sản phẩm
+              const SizedBox(height: 16),
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                    borderRadius: BorderRadius.circular(12)),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.productName,
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Giá: ${widget.price.toStringAsFixed(0)} VND',
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.blue),
-                      ),
-                    ],
-                  ),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.productName,
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Text('Giá: ${widget.price.toStringAsFixed(0)} VND',
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.blue)),
+                      ]),
                 ),
               ),
               const SizedBox(height: 20),
-              // Thẻ thông tin người mua
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                    borderRadius: BorderRadius.circular(12)),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Thông tin người mua:',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          labelText: 'Họ và Tên *',
-                          hintText: 'Nhập họ và tên của bạn',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Thông tin người mua:',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _nameController,
+                          decoration: InputDecoration(
+                            labelText: 'Họ và Tên *',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            prefixIcon: const Icon(Icons.person),
+                            filled: true,
+                            fillColor: Colors.grey[100],
                           ),
-                          prefixIcon: const Icon(Icons.person),
-                          filled: true,
-                          fillColor: Colors.grey[100],
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
-                          labelText: 'Số điện thoại *',
-                          hintText: 'Nhập số điện thoại của bạn',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          decoration: InputDecoration(
+                            labelText: 'Số điện thoại *',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            prefixIcon: const Icon(Icons.phone),
+                            filled: true,
+                            fillColor: Colors.grey[100],
                           ),
-                          prefixIcon: const Icon(Icons.phone),
-                          filled: true,
-                          fillColor: Colors.grey[100],
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _addressController,
-                        decoration: InputDecoration(
-                          labelText: 'Địa chỉ *',
-                          hintText: 'Nhập địa chỉ giao hàng của bạn',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _addressController,
+                          decoration: InputDecoration(
+                            labelText: 'Địa chỉ *',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            prefixIcon: const Icon(Icons.location_on),
+                            filled: true,
+                            fillColor: Colors.grey[100],
                           ),
-                          prefixIcon: const Icon(Icons.location_on),
-                          filled: true,
-                          fillColor: Colors.grey[100],
+                          maxLines: 3,
                         ),
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        '* Thông tin bắt buộc',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(height: 8),
+                        const Text('* Thông tin bắt buộc',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.red)),
+                      ]),
                 ),
               ),
               const SizedBox(height: 24),
-              // Nút xác nhận thanh toán
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -306,11 +256,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         _phoneController.text.isEmpty ||
                         _addressController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                                content:
-                                    Text('Vui lòng điền đầy đủ thông tin!'),
-                                backgroundColor: Colors.orange,
-                              ),
+                              const SnackBar(
+                                  content:
+                                      Text('Vui lòng điền đầy đủ thông tin!'),
+                                  backgroundColor: Colors.orange),
                             );
                             return;
                           }
@@ -318,28 +267,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 4,
                   ),
                   child: _isLoading
                       ? const SizedBox(
-                          height: 24,
                           width: 24,
+                          height: 24,
                           child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
+                              color: Colors.white, strokeWidth: 2),
                         )
-                      : const Text(
-                          'XÁC NHẬN THANH TOÁN',
+                      : const Text('XÁC NHẬN THANH TOÁN',
                           style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                              fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
