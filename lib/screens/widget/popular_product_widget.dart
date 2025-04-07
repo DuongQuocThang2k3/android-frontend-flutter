@@ -26,7 +26,7 @@ class _PopularServiceWidgetState extends State<PopularServiceWidget> {
   Future<List<PetService>> _fetchServices() async {
     try {
       // ApiClient sẽ tự động thêm baseUrl và header Authorization nếu có token :contentReference[oaicite:0]{index=0}
-      final response = await _apiClient.get('/Service');
+      final response = await _apiClient.get('Service');
       debugPrint('API Response: ${response.body}');
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);

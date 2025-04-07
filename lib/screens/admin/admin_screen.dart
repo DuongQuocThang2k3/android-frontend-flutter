@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'pets_list/admin_petslist.dart';
+import 'pets_list/admin_pets_list.dart';
 import '../admin/admin_productlist.dart';
 import '../admin/admin_service.dart';
 import 'admin_order_list.dart';

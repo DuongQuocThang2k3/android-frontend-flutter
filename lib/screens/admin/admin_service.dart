@@ -1,7 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import '../../config/config_url.dart';
+
+import '../../services/api_client.dart';
 
 class AdminServiceList extends StatefulWidget {
   const AdminServiceList({super.key});
@@ -28,14 +29,16 @@ class _AdminServiceListState extends State<AdminServiceList> with RouteAware {
   Future<void> _fetchServices() async {
     setState(() => _isLoading = true);
     try {
-      final response = await http.get(Uri.parse('${Config_URL.baseUrl}Service'));
+      // Gọi GET "Service" qua ApiClient (tự thêm token và JSON header)
+      final response = await ApiClient().get('Service');
       if (response.statusCode == 200) {
         setState(() {
           _services = jsonDecode(response.body);
           _isLoading = false;
         });
       } else {
-        throw Exception('Failed to load services. Status code: ${response.statusCode}');
+        throw Exception(
+            'Failed to load services. Status code: ${response.statusCode}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -48,7 +51,8 @@ class _AdminServiceListState extends State<AdminServiceList> with RouteAware {
 
   Future<void> _deleteService(int serviceId) async {
     try {
-      final response = await http.delete(Uri.parse('${Config_URL.baseUrl}Service/$serviceId'));
+      // Gọi DELETE "Service/{serviceId}" qua ApiClient
+      final response = await ApiClient().delete('Service/$serviceId');
       if (response.statusCode == 200) {
         setState(() {
           _services.removeWhere((service) => service['serviceId'] == serviceId);
@@ -57,7 +61,8 @@ class _AdminServiceListState extends State<AdminServiceList> with RouteAware {
           const SnackBar(content: Text('Service deleted successfully!')),
         );
       } else {
-        throw Exception('Failed to delete service. Status code: ${response.statusCode}');
+        throw Exception(
+            'Failed to delete service. Status code: ${response.statusCode}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -120,9 +125,10 @@ class _AdminServiceListState extends State<AdminServiceList> with RouteAware {
         itemCount: _services.length,
         itemBuilder: (context, index) {
           final service = _services[index];
-          final imageUrl = (service['images'] != null && service['images'].isNotEmpty)
-              ? service['images'][0]['url']
-              : null;
+                final imageUrl =
+                    (service['images'] != null && service['images'].isNotEmpty)
+                        ? service['images'][0]['url']
+                        : null;
 
           return ListTile(
             leading: _buildImage(imageUrl),
@@ -210,31 +216,36 @@ class _AddOrEditServiceScreenState extends State<AddOrEditServiceScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final isEditing = widget.service != null;
-    final url = isEditing
-        ? Uri.parse('${Config_URL.baseUrl}Service/${widget.service!['serviceId']}')
-        : Uri.parse('${Config_URL.baseUrl}Service');
-
-    final requestBody = jsonEncode({
+    // Tạo body request dưới dạng Map; ApiClient sẽ tự JSON encode và thêm token vào header
+    final requestBody = {
+      if (isEditing) 'serviceId': widget.service!['serviceId'],
       'name': _nameController.text,
       'price': double.tryParse(_priceController.text),
       'description': _descriptionController.text,
       'images': [
-        {'url': _imageUrlController.text}
+        {
+          if (isEditing &&
+              widget.service!['images'] != null &&
+              widget.service!['images'].isNotEmpty)
+            'id': widget.service!['images'][0]['id'],
+          'url': _imageUrlController.text,
+          if (isEditing) 'serviceId': widget.service!['serviceId'],
+        }
       ],
-    });
+    };
+
+    debugPrint("Request body: ${jsonEncode(requestBody)}");
 
     try {
       final response = isEditing
-          ? await http.put(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: requestBody,
-      )
-          : await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: requestBody,
-      );
+          ? await ApiClient().put(
+              'Service/${widget.service!['serviceId']}',
+              body: requestBody,
+            )
+          : await ApiClient().post(
+              'Service',
+              body: requestBody,
+            );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Navigator.pop(context, true);

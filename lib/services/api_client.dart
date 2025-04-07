@@ -14,6 +14,7 @@ class ApiClient {
   Future<http.Response> get(String endpoint,
       {Map<String, String>? headers}) async {
     final builtHeaders = await _buildHeaders(headers);
+    print("GET Request Headers: $builtHeaders");
     return await http.get(
       Uri.parse('$baseUrl$endpoint'),
       headers: builtHeaders,
@@ -26,14 +27,9 @@ class ApiClient {
       bool requiresAuth = true}) async {
     final builtHeaders =
         await _buildHeaders(headers, requiresAuth: requiresAuth);
-
-    // Nếu body là chuỗi, bọc nó trong dấu ngoặc kép để tạo JSON hợp lệ
-    final String bodyString =
-        body is String ? jsonEncode(body) : jsonEncode(body);
-
-    print("Request headers: $builtHeaders"); // Log để kiểm tra
-    print("Request body: $bodyString"); // Log để kiểm tra
-
+    final String bodyString = jsonEncode(body);
+    print("POST Request Headers: $builtHeaders");
+    print("POST Request Body: $bodyString");
     return await http.post(
       Uri.parse('$baseUrl$endpoint'),
       headers: builtHeaders,
@@ -41,15 +37,38 @@ class ApiClient {
     );
   }
 
+  Future<http.Response> put(String endpoint,
+      {Map<String, String>? headers, dynamic body}) async {
+    final builtHeaders = await _buildHeaders(headers);
+    final String bodyString = jsonEncode(body);
+    print("PUT Request Headers: $builtHeaders");
+    print("PUT Request Body: $bodyString");
+    return await http.put(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: builtHeaders,
+      body: bodyString,
+    );
+  }
+
+  Future<http.Response> delete(String endpoint,
+      {Map<String, String>? headers}) async {
+    final builtHeaders = await _buildHeaders(headers);
+    print("DELETE Request Headers: $builtHeaders");
+    return await http.delete(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: builtHeaders,
+    );
+  }
+
   Future<Map<String, String>> _buildHeaders(Map<String, String>? headers,
       {bool requiresAuth = true}) async {
     final Map<String, String> defaultHeaders = {
-      'Content-Type': 'application/json'
-      // Giữ nguyên Content-Type là application/json
+      'Content-Type': 'application/json',
     };
 
     if (requiresAuth) {
       final token = await TokenManager.getToken();
+      print("Token from TokenManager: $token");
       if (token != null) {
         defaultHeaders['Authorization'] = 'Bearer $token';
       }
@@ -61,24 +80,4 @@ class ApiClient {
 
     return defaultHeaders;
   }
-
-  Future<http.Response> put(String endpoint,
-      {Map<String, String>? headers, dynamic body}) async {
-    final builtHeaders = await _buildHeaders(headers);
-    return await http.put(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: builtHeaders,
-      body: jsonEncode(body),
-    );
-  }
-
-  Future<http.Response> delete(String endpoint,
-      {Map<String, String>? headers}) async {
-    final builtHeaders = await _buildHeaders(headers);
-    return await http.delete(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: builtHeaders,
-    );
-  }
-
 }

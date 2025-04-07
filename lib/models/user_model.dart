@@ -22,10 +22,12 @@ class UserModel {
     required this.twoFactorEnabled,
     required this.lockoutEnabled,
     required this.accessFailedCount,
+    required token,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
+      token: json['token'],
       id: json['id'] as String? ?? '',
       username: json['userName'] as String? ?? '',
       email: json['email'] as String? ?? '',

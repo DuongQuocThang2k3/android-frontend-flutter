@@ -76,9 +76,9 @@ class _MainScreenState extends State<MainScreen> {
         label: 'Trang chủ',
       ),
       BottomNavigationBarItem(
-        icon: Icon(Icons.video_library_outlined),
+        icon: Icon(Icons.article_outlined),
         activeIcon: Icon(Icons.video_library, color: primaryColor),
-        label: 'Video',
+        label: 'Thông tin',
       ),
       BottomNavigationBarItem(
         icon: Icon(Icons.info_outline),

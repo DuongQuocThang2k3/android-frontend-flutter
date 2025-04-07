@@ -1,17 +1,14 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
-import '../../config/config_url.dart';
 import '../../models/appointment.dart';
 import '../../models/pet_service_model.dart';
+import '../../services/api_client.dart';
+import '../../shared_preferences/token_manager.dart';
 
 class AppointmentScreen extends StatefulWidget {
   final PetService service;
-  final String userId;
 
-  const AppointmentScreen({super.key, required this.service, required this.userId});
+  const AppointmentScreen({super.key, required this.service});
 
   @override
   State<AppointmentScreen> createState() => _AppointmentScreenState();
@@ -37,19 +34,28 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       _selectedTime!.minute,
     );
 
+    // Lấy username từ TokenManager (dựa trên session hoặc decode token)
+    final String? username = await TokenManager.getUsername();
+    if (username == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Không tìm thấy thông tin người dùng.")),
+      );
+      return;
+    }
+
+    // Tạo đối tượng Appointment, thay thế userId bằng username
     final appointment = Appointment(
-      userId: widget.userId,
+      // Sử dụng username thay cho userId
+      userId: username,
       serviceId: widget.service.serviceId,
       appointmentDate: appointmentDate.toIso8601String(),
       status: "Pending",
     );
 
-    final String apiUrl = '${Config_URL.baseUrl}Appointment';
     try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode(appointment.toJson()),
+      final response = await ApiClient().post(
+        'Appointment',
+        body: appointment.toJson(),
       );
 
       if (response.statusCode == 201) {
@@ -94,7 +100,6 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         );
       },
     );
-
     if (picked != null && picked != _selectedTime) {
       setState(() {
         _selectedTime = picked;
@@ -131,18 +136,22 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _selectDate,
-                    child: Text(_selectedDate == null
-                        ? "Chọn ngày"
-                        : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"),
+                    child: Text(
+                      _selectedDate == null
+                          ? "Chọn ngày"
+                          : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _selectTime,
-                    child: Text(_selectedTime == null
-                        ? "Chọn giờ"
-                        : "${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}"),
+                    child: Text(
+                      _selectedTime == null
+                          ? "Chọn giờ"
+                          : "${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}",
+                    ),
                   ),
                 ),
               ],

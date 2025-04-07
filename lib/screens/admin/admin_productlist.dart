@@ -1,11 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
-import '../../config/config_url.dart';
+import '../../services/api_client.dart';
 
-//san pham cua cho meo
 class AdminProductList extends StatefulWidget {
   const AdminProductList({super.key});
 
@@ -13,7 +11,7 @@ class AdminProductList extends StatefulWidget {
   State<AdminProductList> createState() => _AdminProductListState();
 }
 
-class _AdminProductListState extends State<AdminProductList> {
+class _AdminProductListState extends State<AdminProductList> with RouteAware {
   List<dynamic> _products = [];
   bool _isLoading = false;
 
@@ -26,9 +24,8 @@ class _AdminProductListState extends State<AdminProductList> {
   Future<void> _fetchProducts() async {
     setState(() => _isLoading = true);
     try {
-      final response = await http.get(
-        Uri.parse('${Config_URL.baseUrl}Product'),
-      );
+      // Gọi GET "Product" qua ApiClient (tự thêm token và JSON header)
+      final response = await ApiClient().get('Product');
       if (response.statusCode == 200) {
         setState(() {
           _products = jsonDecode(response.body);
@@ -47,9 +44,8 @@ class _AdminProductListState extends State<AdminProductList> {
 
   Future<void> _deleteProduct(int productId) async {
     try {
-      final response = await http.delete(
-        Uri.parse('${Config_URL.baseUrl}Product/$productId'),
-      );
+      // Gọi DELETE "Product/{productId}" qua ApiClient
+      final response = await ApiClient().delete('Product/$productId');
       if (response.statusCode == 200) {
         setState(() {
           _products.removeWhere((product) => product['productId'] == productId);
@@ -190,38 +186,44 @@ class _AddOrEditProductScreenState extends State<AddOrEditProductScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final isEditing = widget.product != null;
-    final url = isEditing
-        ? Uri.parse('${Config_URL.baseUrl}Product/${widget.product!['productId']}')
-        : Uri.parse('${Config_URL.baseUrl}Product');
-
+    // Tạo body request dưới dạng Map, bao gồm productId (nếu cập nhật)
     final productData = {
+      if (isEditing) 'productId': widget.product!['productId'],
       'name': _nameController.text,
       'price': double.tryParse(_priceController.text),
       'description': _descriptionController.text,
       'quantity': int.parse(_quantityController.text),
-      'images': [
-        {'imageUrl': _imageController.text}
-      ],
       'supplyCategoryId': widget.product?['supplyCategoryId'] ?? 0,
+      'images': [
+        {
+          'productImageId': isEditing &&
+                  widget.product!['images'] != null &&
+                  widget.product!['images'].isNotEmpty
+              ? widget.product!['images'][0]['productImageId']
+              : 0,
+          'imageUrl': _imageController.text,
+        }
+      ],
     };
+
+    debugPrint("Request body: ${jsonEncode(productData)}");
 
     try {
       final response = isEditing
-          ? await http.put(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(productData),
-      )
-          : await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(productData),
-      );
+          ? await ApiClient().put(
+              'Product/${widget.product!['productId']}',
+              body: productData,
+            )
+          : await ApiClient().post(
+              'Product',
+              body: productData,
+            );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Navigator.pop(context, true);
       } else {
-        throw Exception('Failed to save product. Status code: ${response.statusCode}');
+        throw Exception(
+            'Failed to save product. Status code: ${response.statusCode}\nBody: ${response.body}');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -248,7 +250,7 @@ class _AddOrEditProductScreenState extends State<AddOrEditProductScreen> {
                   controller: _nameController,
                   decoration: const InputDecoration(labelText: 'Tên sản phẩm'),
                   validator: (value) =>
-                  value!.isEmpty ? 'Tên không được để trống' : null,
+                      value!.isEmpty ? 'Tên không được để trống' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -256,7 +258,7 @@ class _AddOrEditProductScreenState extends State<AddOrEditProductScreen> {
                   decoration: const InputDecoration(labelText: 'Giá'),
                   keyboardType: TextInputType.number,
                   validator: (value) =>
-                  value!.isEmpty ? 'Giá không được để trống' : null,
+                      value!.isEmpty ? 'Giá không được để trống' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -264,21 +266,21 @@ class _AddOrEditProductScreenState extends State<AddOrEditProductScreen> {
                   decoration: const InputDecoration(labelText: 'Số lượng'),
                   keyboardType: TextInputType.number,
                   validator: (value) =>
-                  value!.isEmpty ? 'Số lượng không được để trống' : null,
+                      value!.isEmpty ? 'Số lượng không được để trống' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _descriptionController,
                   decoration: const InputDecoration(labelText: 'Mô tả'),
                   validator: (value) =>
-                  value!.isEmpty ? 'Mô tả không được để trống' : null,
+                      value!.isEmpty ? 'Mô tả không được để trống' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _imageController,
-                  decoration: const InputDecoration(labelText: 'URL Ảnh'),
+                  decoration: const InputDecoration(labelText: 'URL ảnh'),
                   validator: (value) =>
-                  value!.isEmpty ? 'URL ảnh không được để trống' : null,
+                      value!.isEmpty ? 'URL ảnh không được để trống' : null,
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(

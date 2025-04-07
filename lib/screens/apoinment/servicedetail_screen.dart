@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/pet_service_model.dart';
+import '../../shared_preferences/token_manager.dart';
 import 'appointment_screen.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
@@ -14,20 +14,20 @@ class ServiceDetailScreen extends StatefulWidget {
 }
 
 class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
-  String? _userId;
+  String? _username;
 
   @override
   void initState() {
     super.initState();
-    _loadUserId();
+    _loadUsername();
   }
 
-  Future<void> _loadUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId');
-    print("User ID được lấy: $userId");
+  Future<void> _loadUsername() async {
+    // Lấy username từ TokenManager (thông qua session hoặc decode token)
+    final username = await TokenManager.getUsername();
+    debugPrint("Username được lấy: $username");
     setState(() {
-      _userId = userId; // Gán userId
+      _username = username;
     });
   }
 
@@ -54,9 +54,11 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
-                  image: NetworkImage(widget.service.images.isNotEmpty
-                      ? widget.service.images[0].url
-                      : 'https://via.placeholder.com/250x250'),
+                  image: NetworkImage(
+                    widget.service.images.isNotEmpty
+                        ? widget.service.images[0].url
+                        : 'https://via.placeholder.com/250x250',
+                  ),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -89,20 +91,19 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _userId != null
+                onPressed: _username != null
                     ? () {
-                  print("User ID hợp lệ: $_userId");
-                  Navigator.push(
-                    context,
+                        debugPrint("Username hợp lệ: $_username");
+                        Navigator.push(
+                          context,
                     MaterialPageRoute(
-                      builder: (context) => AppointmentScreen(
-                        service: widget.service,
-                        userId: _userId!,
-                      ),
+                            builder: (_) => AppointmentScreen(
+                              service: widget.service,
+                            ),
                     ),
                   );
                 }
-                    : null, // Vô hiệu hóa nếu userId chưa được tải
+                    : null, // Vô hiệu hóa nếu username chưa được tải
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.all(16),
                   backgroundColor: Colors.blue,
