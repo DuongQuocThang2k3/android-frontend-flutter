@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:the_cherry_pet_shop/models/user_model.dart';
-import 'package:the_cherry_pet_shop/screens/post_list_screen.dart';
+import 'package:the_cherry_pet_shop/screens/post_screen/post_list_screen.dart';
 import 'package:the_cherry_pet_shop/shared_preferences/token_manager.dart';
 
 import 'account_screen.dart';

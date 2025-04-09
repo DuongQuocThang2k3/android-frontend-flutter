@@ -22,16 +22,25 @@ class Order {
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
-      orderId: json['orderId'] as int,
-      userId: json['userId'] as String,
+      orderId: json['orderId'] != null ? json['orderId'] as int : 0,
+      userId: json['userId'] as String? ?? '',
       user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
-      orderDate: DateTime.parse(json['orderDate'] as String),
-      totalPrice: (json['totalPrice'] as num).toDouble(),
-      status: json['status'] as String,
+      orderDate: json['orderDate'] != null
+          ? DateTime.parse(json['orderDate'] as String)
+          : DateTime.now(),
+      totalPrice: json['totalPrice'] != null
+          ? (json['totalPrice'] as num).toDouble()
+          : 0.0,
+      status: json['status'] as String? ?? '',
       orderDetails: json['orderDetails'] != null
-          ? (json['orderDetails'] as List<dynamic>)
-              .map((e) => OrderDetail.fromJson(e as Map<String, dynamic>))
-              .toList()
+          ? (json['orderDetails'] as List<dynamic>).map((e) {
+              var detailJson = e as Map<String, dynamic>;
+              // Nếu detail không có orderId thì chèn giá trị từ đơn hàng cha.
+              if (detailJson['orderId'] == null) {
+                detailJson['orderId'] = json['orderId'];
+              }
+              return OrderDetail.fromJson(detailJson);
+            }).toList()
           : [],
     );
   }

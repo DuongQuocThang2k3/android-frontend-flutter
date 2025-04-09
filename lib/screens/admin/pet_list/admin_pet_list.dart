@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../models/petItem.dart';
 import '../../../services/api_client.dart';
 import 'add_or_edit_pet_screen.dart';
+import 'cache_pet.dart';
 
 class AdminPetList extends StatefulWidget {
   const AdminPetList({Key? key}) : super(key: key);
@@ -22,7 +23,19 @@ class _AdminPetListState extends State<AdminPetList> {
   @override
   void initState() {
     super.initState();
-    _loadPets();
+    // Đọc cache trước khi gọi API
+    _loadLocalCache().then((_) {
+      _loadPets();
+    });
+  }
+
+  Future<void> _loadLocalCache() async {
+    final cachedPets = await CachePet.loadPets();
+    if (cachedPets.isNotEmpty) {
+      setState(() {
+        _pets = cachedPets;
+      });
+    }
   }
 
   Future<void> _loadPets() async {
@@ -36,9 +49,12 @@ class _AdminPetListState extends State<AdminPetList> {
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
         if (data is List) {
+          final pets = data.map((e) => PetItem.fromJson(e)).toList();
           setState(() {
-            _pets = data.map((e) => PetItem.fromJson(e)).toList();
+            _pets = pets;
           });
+          // Cập nhật cache sau khi tải xong
+          await CachePet.savePets(_pets);
         } else {
           throw Exception('Invalid response format');
         }
@@ -64,9 +80,14 @@ class _AdminPetListState extends State<AdminPetList> {
         setState(() {
           _pets.removeWhere((p) => p.petId == id);
         });
+        // Cập nhật cache sau khi xóa
+        await CachePet.savePets(_pets);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Xóa thành công'),
+            content: Text(
+              'Xóa thành công',
+              style: TextStyle(fontSize: 13),
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -76,7 +97,7 @@ class _AdminPetListState extends State<AdminPetList> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Lỗi: $e'),
+          content: Text('Lỗi: $e', style: const TextStyle(fontSize: 13)),
           backgroundColor: Colors.red,
         ),
       );
@@ -87,18 +108,20 @@ class _AdminPetListState extends State<AdminPetList> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Xác nhận'),
-        content: Text('Bạn có chắc chắn muốn xóa "${pet.name}"?'),
+        title: const Text('Xác nhận', style: TextStyle(fontSize: 13)),
+        content: Text('Bạn có chắc chắn muốn xóa "${pet.name}"?',
+            style: const TextStyle(fontSize: 13)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Hủy')),
+              child: const Text('Hủy', style: TextStyle(fontSize: 13))),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _deletePet(pet.petId);
             },
-            child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+            child: const Text('Xóa',
+                style: TextStyle(fontSize: 13, color: Colors.red)),
           ),
         ],
       ),
@@ -118,11 +141,11 @@ class _AdminPetListState extends State<AdminPetList> {
   Widget _buildImage(String? url) {
     if (url == null || url.isEmpty) return _buildPlaceholder();
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(8),
       child: Image.network(
         url,
-        width: 70,
-        height: 70,
+        width: 60,
+        height: 60,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => _buildPlaceholder(),
       ),
@@ -131,13 +154,13 @@ class _AdminPetListState extends State<AdminPetList> {
 
   Widget _buildPlaceholder() {
     return Container(
-      width: 70,
-      height: 70,
+      width: 60,
+      height: 60,
       decoration: BoxDecoration(
         color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: const Icon(Icons.pets, color: Colors.grey, size: 32),
+      child: const Icon(Icons.pets, color: Colors.grey, size: 28),
     );
   }
 
@@ -153,6 +176,7 @@ class _AdminPetListState extends State<AdminPetList> {
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
+            fontSize: 13,
           ),
         ),
         actions: [
@@ -185,37 +209,37 @@ class _AdminPetListState extends State<AdminPetList> {
         children: [
           Icon(
             Icons.error_outline,
-            size: 60,
+            size: 50,
             color: Colors.red.shade300,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           Text(
             'Đã xảy ra lỗi',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 13,
               fontWeight: FontWeight.bold,
               color: Colors.red.shade700,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               _error!,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey),
+              style: const TextStyle(color: Colors.grey, fontSize: 13),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           ElevatedButton.icon(
             onPressed: _loadPets,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Thử lại'),
+            icon: const Icon(Icons.refresh, size: 16),
+            label: const Text('Thử lại', style: TextStyle(fontSize: 13)),
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               backgroundColor: Colors.blue,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(6),
               ),
             ),
           ),
@@ -231,32 +255,32 @@ class _AdminPetListState extends State<AdminPetList> {
         children: [
           Icon(
             Icons.pets,
-            size: 60,
+            size: 50,
             color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Chưa có thú cưng nào',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
           ),
           const SizedBox(height: 8),
           const Text(
-            'Nhấn nút + để thêm thú cưng mới',
-            style: TextStyle(color: Colors.grey),
+            'Chưa có thú cưng nào',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 4),
+          const Text(
+            'Nhấn nút + để thêm thú cưng mới',
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+          const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () => _openForm(),
-            icon: const Icon(Icons.add),
-            label: const Text('Thêm thú cưng'),
+            icon: const Icon(Icons.add, size: 16),
+            label: const Text('Thêm thú cưng', style: TextStyle(fontSize: 13)),
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               backgroundColor: Colors.blue,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(6),
               ),
             ),
           ),
@@ -267,28 +291,26 @@ class _AdminPetListState extends State<AdminPetList> {
 
   Widget _buildPetsList() {
     return ListView.builder(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       itemCount: _pets.length,
       itemBuilder: (context, index) {
         final pet = _pets[index];
         final imageUrl = pet.images.isNotEmpty ? pet.images.first : null;
 
         return Card(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: 8),
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             side: BorderSide(color: Colors.grey.shade300),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
             child: Row(
               children: [
                 // Image
                 _buildImage(imageUrl),
-
-                const SizedBox(width: 16),
-
+                const SizedBox(width: 8),
                 // Content
                 Expanded(
                   child: Column(
@@ -301,7 +323,7 @@ class _AdminPetListState extends State<AdminPetList> {
                             child: Text(
                               pet.name,
                               style: const TextStyle(
-                                fontSize: 16,
+                                fontSize: 13,
                                 fontWeight: FontWeight.bold,
                               ),
                               maxLines: 1,
@@ -310,19 +332,19 @@ class _AdminPetListState extends State<AdminPetList> {
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                              horizontal: 6,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
                               color: pet.status == 'Available'
                                   ? Colors.green.shade100
                                   : Colors.orange.shade100,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               pet.status,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: pet.status == 'Available'
                                     ? Colors.green.shade800
                                     : Colors.orange.shade800,
@@ -331,30 +353,24 @@ class _AdminPetListState extends State<AdminPetList> {
                           ),
                         ],
                       ),
-
-                      const SizedBox(height: 4),
-
+                      const SizedBox(height: 2),
                       // Age and price
                       Text(
                         'Tuổi: ${pet.age} • Giá: ${pet.price.toStringAsFixed(0)} đ',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           color: Colors.grey.shade700,
                         ),
                       ),
-
-                      const SizedBox(height: 4),
-
+                      const SizedBox(height: 2),
                       // Description
                       Text(
                         pet.description,
-                        style: const TextStyle(fontSize: 14),
+                        style: const TextStyle(fontSize: 13),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-
-                      const SizedBox(height: 8),
-
+                      const SizedBox(height: 4),
                       // Action buttons
                       Row(
                         children: [
@@ -362,12 +378,13 @@ class _AdminPetListState extends State<AdminPetList> {
                             child: OutlinedButton.icon(
                               onPressed: () => _openForm(pet: pet),
                               icon: const Icon(Icons.edit, size: 16),
-                              label: const Text('Sửa'),
+                              label: const Text('Sửa',
+                                  style: TextStyle(fontSize: 13)),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.blue,
                                 side: const BorderSide(color: Colors.blue),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
                               ),
                             ),
@@ -377,12 +394,13 @@ class _AdminPetListState extends State<AdminPetList> {
                             child: OutlinedButton.icon(
                               onPressed: () => _confirmDelete(pet),
                               icon: const Icon(Icons.delete, size: 16),
-                              label: const Text('Xóa'),
+                              label: const Text('Xóa',
+                                  style: TextStyle(fontSize: 13)),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.red,
                                 side: const BorderSide(color: Colors.red),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
                               ),
                             ),

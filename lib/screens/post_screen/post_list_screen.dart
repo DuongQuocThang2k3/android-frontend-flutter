@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../models/postlist_model.dart';
+import '../../models/postlist_model.dart';
 
 class PostListScreen extends StatelessWidget {
   const PostListScreen({Key? key}) : super(key: key);

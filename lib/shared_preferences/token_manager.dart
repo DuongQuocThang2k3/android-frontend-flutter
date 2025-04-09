@@ -209,4 +209,15 @@ class TokenManager {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_cartKey);
   }
+
+  /// Caching instance của SharedPreferences trong TokenManager
+  static SharedPreferences? _instance;
+
+  /// Hàm static getInstance() trả về một instance của SharedPreferences.
+  static Future<SharedPreferences> getInstance() async {
+    if (_instance == null) {
+      _instance = await SharedPreferences.getInstance();
+    }
+    return _instance!;
+  }
 }
