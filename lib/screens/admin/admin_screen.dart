@@ -5,6 +5,7 @@ import 'package:the_cherry_pet_shop/screens/admin/service_list/admin_service_lis
 import 'package:the_cherry_pet_shop/screens/admin/user_role.dart';
 
 import 'admin_roleclaim.dart';
+import 'appointment/appointment_list.dart';
 import 'order_list/admin_order_list.dart';
 import 'user_list/admin_user_list.dart';
 
@@ -13,7 +14,7 @@ class AdminScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Định nghĩa các mục quản lý
+    // Định nghĩa các mục quản trị với title, icon, màu sắc và route tương ứng.
     final adminMenuItems = [
       {
         'title': 'Quản lý thú cưng',
@@ -40,7 +41,13 @@ class AdminScreen extends StatelessWidget {
         'route': const AdminUserList(),
       },
       {
-        'title': 'Quản lý đơn hàng',
+        'title': 'QL đơn D.Vụ',
+        'icon': Icons.list_alt,
+        'color': Colors.blueAccent.shade400,
+        'route':  AppointmentListPage(),
+      },
+      {
+        'title': 'QL đơn hàng',
         'icon': Icons.list_alt,
         'color': Colors.blueAccent.shade400,
         'route': const AdminOrderList(),
@@ -93,13 +100,12 @@ class AdminScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               // Grid layout cho các mục quản lý
               Expanded(
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 1.5, // Tăng tỷ lệ để tránh tràn
+                    childAspectRatio: 1.5,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
@@ -112,7 +118,7 @@ class AdminScreen extends StatelessWidget {
                       icon: item['icon'] as IconData,
                       color: item['color'] as Color,
                       route: item['route'] as Widget,
-                      index: index, // Thêm index để tạo tag duy nhất
+                      index: index,
                     );
                   },
                 ),
@@ -121,18 +127,18 @@ class AdminScreen extends StatelessWidget {
           ),
         ),
       ),
-      // Loại bỏ FloatingActionButton để tránh lỗi Hero tag
+      // FloatingActionButton đã bị loại bỏ để tránh xung đột với Hero tags
     );
   }
 
   Widget _buildAdminMenuItem(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color color,
-    required Widget route,
-    required int index, // Thêm tham số index
-  }) {
+      BuildContext context, {
+        required String title,
+        required IconData icon,
+        required Color color,
+        required Widget route,
+        required int index,
+      }) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -152,7 +158,6 @@ class AdminScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
-            // Thêm mainAxisSize: MainAxisSize.min để tránh tràn
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
@@ -166,9 +171,8 @@ class AdminScreen extends StatelessWidget {
                   size: 24,
                 ),
               ),
-              const SizedBox(height: 6), // Giảm khoảng cách
+              const SizedBox(height: 6),
               Flexible(
-                // Bọc Text trong Flexible để tránh tràn
                 child: Text(
                   title,
                   style: const TextStyle(

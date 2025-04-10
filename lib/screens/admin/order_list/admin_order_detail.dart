@@ -30,7 +30,7 @@ class _AdminOrderDetailState extends State<AdminOrderDetail> {
   String? _selectedStatus;
   final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
-  // Danh sách trạng thái đơn hàng
+  // Danh sách trạng thái đơn hàng (có thể chỉnh lại sao cho phù hợp với backend)
   final List<String> _orderStatuses = [
     'Chờ xử lý',
     'Đang xử lý',
@@ -55,6 +55,7 @@ class _AdminOrderDetailState extends State<AdminOrderDetail> {
       final order = await _service.fetchOrderDetail(widget.orderId);
       setState(() {
         _order = order;
+        // Giả sử khi lấy đơn hàng từ API, ta sử dụng trường userName để hiển thị tên khách hàng.
         _selectedStatus = order.status;
       });
     } catch (e) {
@@ -74,17 +75,24 @@ class _AdminOrderDetailState extends State<AdminOrderDetail> {
     setState(() => _isSaving = true);
 
     try {
-      final updatedOrder =
-          await _service.updateOrderStatus(widget.orderId, _selectedStatus!);
+      // Tạo mới đối tượng Order với status đã cập nhật, giữ lại các trường khác từ _order.
+      final updatedOrder = Order(
+        orderId: _order!.orderId,
+        userId: _order!.userId,
+        user: _order!.user,
+        orderDate: _order!.orderDate,
+        totalPrice: _order!.totalPrice,
+        status: _selectedStatus!,
+        orderDetails: _order!.orderDetails,
+      );
+      final result = await _service.updateOrder(updatedOrder);
       setState(() {
-        _order = updatedOrder;
+        _order = result;
         _isSaving = false;
       });
 
       _showSuccessSnackBar('Đã cập nhật trạng thái đơn hàng thành công');
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
+      Navigator.pop(context, true);
     } catch (e) {
       setState(() => _isSaving = false);
       _showErrorSnackBar('Không thể cập nhật trạng thái đơn hàng: $e');
@@ -95,9 +103,7 @@ class _AdminOrderDetailState extends State<AdminOrderDetail> {
     try {
       await _service.deleteOrder(widget.orderId);
       _showSuccessSnackBar('Đã xóa đơn hàng thành công');
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
+      Navigator.pop(context, true);
     } catch (e) {
       _showErrorSnackBar('Không thể xóa đơn hàng: $e');
     }
@@ -385,22 +391,10 @@ class _AdminOrderDetailState extends State<AdminOrderDetail> {
                             _buildDetailRow('Trạng thái', _order!.status),
                           ]),
                           _buildDetailSection('Thông tin khách hàng', [
-                            _buildDetailRow('Họ tên', _order!.user.fullName),
+                            // Sửa: hiển thị userName thay vì fullName và loại bỏ các trường Phone/Address
+                            _buildDetailRow(
+                                'Tên người dùng', _order!.user.username),
                             _buildDetailRow('Email', _order!.user.email),
-                            FutureBuilder<String?>(
-                              future: _order!.user.phoneNumber,
-                              builder: (context, snapshot) {
-                                return _buildDetailRow('Số điện thoại',
-                                    snapshot.data ?? 'Không có thông tin');
-                              },
-                            ),
-                            FutureBuilder<String?>(
-                              future: _order!.user.address,
-                              builder: (context, snapshot) {
-                                return _buildDetailRow('Địa chỉ',
-                                    snapshot.data ?? 'Không có địa chỉ');
-                              },
-                            ),
                           ]),
                           _buildDetailSection('Sản phẩm trong đơn hàng', [
                             _buildOrderItems(_order!.orderDetails),

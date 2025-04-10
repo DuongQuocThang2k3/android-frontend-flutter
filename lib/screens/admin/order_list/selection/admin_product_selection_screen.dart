@@ -1,17 +1,21 @@
-import 'package:flutter/material.dart';
-import 'package:the_cherry_pet_shop/models/product_model.dart';
-import '../../product_list/cache_product.dart';
+import 'dart:convert';
 
-class AdminProductSelectionScreen extends StatefulWidget {
-  const AdminProductSelectionScreen({Key? key}) : super(key: key);
+import 'package:flutter/material.dart';
+
+import '../../../../models/product_model.dart';
+import '../../../../services/api_client.dart';
+
+class ProductSelectionWidget extends StatefulWidget {
+  final Function(Product?)? onSelected;
+
+  const ProductSelectionWidget({Key? key, this.onSelected}) : super(key: key);
 
   @override
-  State<AdminProductSelectionScreen> createState() =>
-      _AdminProductSelectionScreenState();
+  _ProductSelectionWidgetState createState() => _ProductSelectionWidgetState();
 }
 
-class _AdminProductSelectionScreenState
-    extends State<AdminProductSelectionScreen> {
+class _ProductSelectionWidgetState extends State<ProductSelectionWidget> {
+  final ApiClient _api = ApiClient();
   List<Product> _products = [];
   List<Product> _filteredProducts = [];
   bool _isLoading = true;
@@ -23,22 +27,18 @@ class _AdminProductSelectionScreenState
   void initState() {
     super.initState();
     _loadProducts();
-    _searchController.addListener(_onSearchChanged);
-  }
 
-  void _onSearchChanged() {
-    final query = _searchController.text.toLowerCase();
-    if (query.isEmpty) {
+    // Lắng nghe thay đổi tìm kiếm
+    _searchController.addListener(() {
+      final query = _searchController.text.toLowerCase();
       setState(() {
-        _filteredProducts = _products;
+        _filteredProducts = query.isEmpty
+            ? _products
+            : _products
+                .where((product) => product.name.toLowerCase().contains(query))
+                .toList();
       });
-    } else {
-      setState(() {
-        _filteredProducts = _products
-            .where((product) => product.name.toLowerCase().contains(query))
-            .toList();
-      });
-    }
+    });
   }
 
   Future<void> _loadProducts() async {
@@ -47,29 +47,38 @@ class _AdminProductSelectionScreenState
       _error = null;
     });
     try {
-      final products = await CacheProduct.loadProducts();
-      setState(() {
-        _products = products;
-        _filteredProducts = products;
-      });
+      final resp = await _api.get('Product');
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body);
+        if (data is List) {
+          final products = data
+              .map((e) => Product.fromJson(e as Map<String, dynamic>))
+              .toList();
+          setState(() {
+            _products = products;
+            _filteredProducts = products;
+          });
+        } else {
+          throw Exception('Dữ liệu trả về không đúng định dạng');
+        }
+      } else {
+        throw Exception('Server error: ${resp.statusCode}');
+      }
     } catch (e) {
       setState(() {
         _error = e.toString();
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi tải sản phẩm: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } finally {
       setState(() {
         _isLoading = false;
       });
-    }
-  }
-
-  void _confirmSelection() {
-    if (_selectedProduct != null) {
-      Navigator.pop(context, _selectedProduct);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn sản phẩm')),
-      );
     }
   }
 
@@ -81,59 +90,79 @@ class _AdminProductSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chọn Sản phẩm'),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(child: Text('Lỗi: $_error'))
-              : Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Thanh tìm kiếm
-                      TextField(
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                          labelText: 'Tìm kiếm sản phẩm',
-                          prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Dropdown hiển thị danh sách sản phẩm theo _filteredProducts
-                      DropdownButtonFormField<Product>(
-                        isExpanded: true,
-                        hint: const Text('Chọn sản phẩm'),
-                        value: _selectedProduct,
-                        items: _filteredProducts
-                            .map((product) => DropdownMenuItem<Product>(
-                                  value: product,
-                                  child: Text(product.name.isNotEmpty
-                                      ? product.name
-                                      : 'Không có tên'),
-                                ))
-                            .toList(),
-                        onChanged: (product) {
-                          setState(() {
-                            _selectedProduct = product;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _confirmSelection,
-                        child: const Text('Xác nhận'),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 48),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(
+        child: Text(
+          'Lỗi: $_error',
+          style: const TextStyle(fontSize: 13, color: Colors.red),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Thanh tìm kiếm
+        TextField(
+          controller: _searchController,
+          decoration: const InputDecoration(
+            labelText: 'Tìm kiếm sản phẩm',
+            prefixIcon: Icon(Icons.search),
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Dropdown hiển thị danh sách sản phẩm đã lọc
+        DropdownButtonFormField<Product>(
+          isExpanded: true,
+          hint: const Text('Chọn sản phẩm'),
+          value: _selectedProduct,
+          items: _filteredProducts
+              .map((product) => DropdownMenuItem<Product>(
+                    value: product,
+                    child: Text(
+                      product.name.isNotEmpty ? product.name : 'Không có tên',
+                    ),
+                  ))
+              .toList(),
+          onChanged: (product) {
+            setState(() {
+              _selectedProduct = product;
+            });
+            if (widget.onSelected != null) {
+              widget.onSelected!(product);
+            }
+          },
+          validator: (value) {
+            if (value == null) {
+              return 'Vui lòng chọn sản phẩm';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 8),
+        // In ra số lượng sản phẩm đã load
+        Text(
+          'Số lượng sản phẩm đã load: ${_filteredProducts.length}',
+          style: const TextStyle(fontSize: 14, color: Colors.grey),
+        ),
+        // Hiển thị thông tin của sản phẩm được chọn nếu có
+        if (_selectedProduct != null) ...[
+          const SizedBox(height: 8),
+          Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Đã chọn: ${_selectedProduct!.name}',
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

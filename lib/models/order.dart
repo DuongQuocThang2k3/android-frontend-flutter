@@ -35,7 +35,7 @@ class Order {
       orderDetails: json['orderDetails'] != null
           ? (json['orderDetails'] as List<dynamic>).map((e) {
               var detailJson = e as Map<String, dynamic>;
-              // Nếu detail không có orderId thì chèn giá trị từ đơn hàng cha.
+              // Nếu detail không có orderId thì gán giá trị từ đơn hàng cha
               if (detailJson['orderId'] == null) {
                 detailJson['orderId'] = json['orderId'];
               }
@@ -55,5 +55,25 @@ class Order {
       'status': status,
       'orderDetails': orderDetails.map((d) => d.toJson()).toList(),
     };
+  }
+
+  Order copyWith({
+    int? orderId,
+    String? userId,
+    UserModel? user,
+    DateTime? orderDate,
+    double? totalPrice,
+    String? status,
+    List<OrderDetail>? orderDetails,
+  }) {
+    return Order(
+      orderId: orderId ?? this.orderId,
+      userId: userId ?? this.userId,
+      user: user ?? this.user,
+      orderDate: orderDate ?? this.orderDate,
+      totalPrice: totalPrice ?? this.totalPrice,
+      status: status ?? this.status,
+      orderDetails: orderDetails ?? this.orderDetails,
+    );
   }
 }

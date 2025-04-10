@@ -4,10 +4,25 @@ import 'package:the_cherry_pet_shop/models/order_detail.dart';
 import 'package:the_cherry_pet_shop/models/petItem.dart';
 import 'package:the_cherry_pet_shop/models/product_model.dart';
 import 'package:the_cherry_pet_shop/models/user_model.dart';
+import 'package:the_cherry_pet_shop/screens/admin/order_list/selection/admin_pet_selection_screen.dart';
+import 'package:the_cherry_pet_shop/screens/admin/order_list/selection/admin_product_selection_screen.dart';
 
 import '../pet_list/cache_pet.dart';
 import '../product_list/cache_product.dart';
 import 'order_service.dart';
+
+/// Lớp hỗ trợ lưu trữ dữ liệu của một hàng order detail item
+class _OrderDetailItem {
+  String type; // "pet" hoặc "product"
+  PetItem? selectedPet;
+  Product? selectedProduct;
+  final TextEditingController quantityController;
+  final TextEditingController priceController;
+
+  _OrderDetailItem({this.type = 'product'})
+      : quantityController = TextEditingController(text: '1'),
+        priceController = TextEditingController();
+}
 
 class AdminOrderCreate extends StatefulWidget {
   const AdminOrderCreate({Key? key}) : super(key: key);
@@ -20,81 +35,42 @@ class _AdminOrderCreateState extends State<AdminOrderCreate> {
   final OrderService _service = OrderService();
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers cho thông tin User
-  final TextEditingController _userIdController = TextEditingController();
-  final TextEditingController _userNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
+  // Thông tin user được lấy từ thông tin đăng nhập thành công (UserModel.currentUser)
+  // Hãy đảm bảo rằng sau khi đăng nhập, biến tĩnh này đã được gán đầy đủ.
+  UserModel? _currentUser = UserModel.currentUser;
 
-  // Controllers cho OrderDetail (số lượng, giá)
-  final TextEditingController _quantityController =
-      TextEditingController(text: '1');
-  final TextEditingController _priceController = TextEditingController();
-
-  // Controller và danh sách cho lựa chọn của Pet
-  final TextEditingController _petSearchController = TextEditingController();
+  // Dữ liệu tải từ cache cho lựa chọn Pet và Product
   List<PetItem> _petOptions = [];
-  List<PetItem> _filteredPetOptions = [];
-  PetItem? _selectedPet;
-
-  // Controller và danh sách cho lựa chọn của Product
-  final TextEditingController _productSearchController =
-      TextEditingController();
   List<Product> _productOptions = [];
-  List<Product> _filteredProductOptions = [];
-  Product? _selectedProduct;
+  bool _isLoadingOptions = true;
 
-  // Loại đối tượng: 'product' hay 'pet'
-  String _productType = 'product';
+  // Danh sách các hàng order detail
+  List<_OrderDetailItem> orderDetailItems = [];
 
   bool _isSaving = false;
-  bool _isLoadingOptions = true;
 
   @override
   void initState() {
     super.initState();
     _loadOptions();
-    // Lắng nghe thay đổi tìm kiếm cho Pet
-    _petSearchController.addListener(() {
-      final query = _petSearchController.text.toLowerCase();
-      setState(() {
-        _filteredPetOptions = query.isEmpty
-            ? _petOptions
-            : _petOptions
-                .where((pet) => pet.name.toLowerCase().contains(query))
-                .toList();
-      });
-    });
-    // Lắng nghe thay đổi tìm kiếm cho Product
-    _productSearchController.addListener(() {
-      final query = _productSearchController.text.toLowerCase();
-      setState(() {
-        _filteredProductOptions = query.isEmpty
-            ? _productOptions
-            : _productOptions
-                .where((product) => product.name.toLowerCase().contains(query))
-                .toList();
-      });
-    });
+    // Khởi tạo một hàng mặc định
+    orderDetailItems.add(_OrderDetailItem());
   }
 
-  /// Tải danh sách lựa chọn từ cache cho cả Pet và Product
   Future<void> _loadOptions() async {
     try {
+      // Lấy dữ liệu từ cache (hoặc cập nhật API nếu cần)
       final pets = await CachePet.loadPets();
       final products = await CacheProduct.loadProducts();
       setState(() {
         _petOptions = pets;
-        _filteredPetOptions = pets;
         _productOptions = products;
-        _filteredProductOptions = products;
         _isLoadingOptions = false;
       });
     } catch (e) {
       setState(() {
         _petOptions = [];
-        _filteredPetOptions = [];
         _productOptions = [];
-        _filteredProductOptions = [];
         _isLoadingOptions = false;
       });
       debugPrint('Lỗi load options: $e');
@@ -105,62 +81,76 @@ class _AdminOrderCreateState extends State<AdminOrderCreate> {
 
   Future<void> _createOrder() async {
     if (!_formKey.currentState!.validate()) return;
-    // Kiểm tra đã chọn đối tượng hay chưa theo _productType
-    if (_productType.toLowerCase() == 'pet' && _selectedPet == null) {
+
+    // Kiểm tra có ít nhất 1 hàng có dữ liệu hợp lệ
+    if (orderDetailItems.isEmpty ||
+        orderDetailItems.every((item) =>
+        (item.type == 'pet' && item.selectedPet == null) ||
+            (item.type == 'product' && item.selectedProduct == null))) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chưa chọn thú cưng')),
+        const SnackBar(content: Text('Chưa chọn dữ liệu cho bất kỳ hàng nào')),
       );
       return;
     }
-    if (_productType.toLowerCase() == 'product' && _selectedProduct == null) {
+
+    if (_currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chưa chọn sản phẩm')),
+        const SnackBar(
+            content:
+            Text('Thông tin người dùng không hợp lệ, hãy đăng nhập lại.')),
       );
       return;
     }
 
     setState(() => _isSaving = true);
 
-    // Tạo đối tượng UserModel
-    final user = UserModel(
-      id: _userIdController.text.trim(),
-      username: _userNameController.text.trim(),
-      email: _emailController.text.trim(),
-      fullName: _userNameController.text.trim(),
-      role: 'User',
-      emailConfirmed: false,
-      twoFactorEnabled: false,
-      lockoutEnabled: false,
-      accessFailedCount: 0,
-      token: '',
-    );
+    List<OrderDetail> orderDetails = [];
+    double totalPrice = 0.0;
+    // Duyệt từng hàng order detail
+    for (var item in orderDetailItems) {
+      int quantity = int.tryParse(item.quantityController.text.trim()) ?? 1;
+      double price = double.tryParse(item.priceController.text.trim()) ?? 0.0;
+      if (item.type == 'pet' && item.selectedPet != null) {
+        orderDetails.add(OrderDetail(
+          id: 0,
+          orderId: 0,
+          productType: 'pet',
+          productId: null,
+          petId: item.selectedPet!.petId,
+          quantity: quantity,
+          price: price,
+        ));
+        totalPrice += quantity * price;
+      } else if (item.type == 'product' && item.selectedProduct != null) {
+        orderDetails.add(OrderDetail(
+          id: 0,
+          orderId: 0,
+          productType: 'product',
+          productId: item.selectedProduct!.productId,
+          petId: null,
+          quantity: quantity,
+          price: price,
+        ));
+        totalPrice += quantity * price;
+      }
+    }
 
-    int quantity = int.tryParse(_quantityController.text.trim()) ?? 1;
-    double price = double.tryParse(_priceController.text.trim()) ?? 0.0;
-    double totalPrice = quantity * price;
-
-    OrderDetail orderDetail = OrderDetail(
-      id: 0,
-      orderId: 0,
-      // Server sẽ tự gán id mới
-      productType: _productType,
-      productId: _productType.toLowerCase() == 'product'
-          ? _selectedProduct?.productId
-          : null,
-      petId: _productType.toLowerCase() == 'pet' ? _selectedPet?.petId : null,
-      quantity: quantity,
-      price: price,
-    );
+    if (orderDetails.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chưa chọn dữ liệu hợp lệ cho bất kỳ hàng nào')),
+      );
+      setState(() => _isSaving = false);
+      return;
+    }
 
     Order newOrder = Order(
       orderId: 0,
-      // Server tự gán id mới
-      userId: user.id,
-      user: user,
+      userId: _currentUser!.id, // _currentUser đã được kiểm tra ở trên
+      user: _currentUser!,
       orderDate: DateTime.now(),
       totalPrice: totalPrice,
       status: 'Pending',
-      orderDetails: [orderDetail],
+      orderDetails: orderDetails,
     );
 
     try {
@@ -180,107 +170,189 @@ class _AdminOrderCreateState extends State<AdminOrderCreate> {
 
   @override
   void dispose() {
-    _userIdController.dispose();
-    _userNameController.dispose();
-    _emailController.dispose();
-    _quantityController.dispose();
-    _priceController.dispose();
-    _petSearchController.dispose();
-    _productSearchController.dispose();
+    for (var item in orderDetailItems) {
+      item.quantityController.dispose();
+      item.priceController.dispose();
+    }
     super.dispose();
+  }
+
+  // Widget hiển thị mỗi hàng order detail sử dụng PetSelectionWidget hoặc ProductSelectionWidget
+  Widget _buildOrderDetailItem(int index, _OrderDetailItem item) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(6.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Hàng đầu: chọn loại
+            Row(
+              children: [
+                const Text('Loại: ', style: TextStyle(fontSize: 14)),
+                DropdownButton<String>(
+                  value: item.type,
+                  items: const [
+                    DropdownMenuItem(
+                        value: 'pet',
+                        child: Text('Thú cưng', style: TextStyle(fontSize: 13))),
+                    DropdownMenuItem(
+                        value: 'product',
+                        child: Text('Sản phẩm', style: TextStyle(fontSize: 13))),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      item.type = value ?? 'product';
+                      // Reset dữ liệu khi chuyển đổi loại
+                      item.selectedPet = null;
+                      item.selectedProduct = null;
+                      item.priceController.clear();
+                    });
+                  },
+                ),
+                const Spacer(),
+                if (orderDetailItems.length > 1)
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red, size: 18),
+                    onPressed: () {
+                      setState(() {
+                        orderDetailItems.removeAt(index);
+                      });
+                    },
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            // Phần chọn: sử dụng widget chọn tùy theo loại
+            item.type == 'pet'
+                ? PetSelectionWidget(
+              onSelected: (pet) {
+                setState(() {
+                  item.selectedPet = pet;
+                  if (pet != null) {
+                    item.priceController.text = pet.price.toString();
+                  }
+                });
+              },
+            )
+                : ProductSelectionWidget(
+              onSelected: (prod) {
+                setState(() {
+                  item.selectedProduct = prod;
+                  if (prod != null) {
+                    item.priceController.text = prod.price.toString();
+                  }
+                });
+              },
+            ),
+            const SizedBox(height: 6),
+            // Nếu có lựa chọn, hiển thị thông tin sản phẩm đã chọn
+            if ((item.type == 'pet' && item.selectedPet != null) ||
+                (item.type == 'product' && item.selectedProduct != null))
+              Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: Text(
+                    item.type == 'pet'
+                        ? 'Đã chọn: ${item.selectedPet!.name}'
+                        : 'Đã chọn: ${item.selectedProduct!.name}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 6),
+            // Các trường nhập số lượng và giá cho hàng này
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: item.quantityController,
+                    decoration: const InputDecoration(
+                      labelText: 'Số lượng',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(fontSize: 13),
+                    validator: (value) =>
+                    value == null || value.isEmpty ? 'Nhập số lượng' : null,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: TextFormField(
+                    controller: item.priceController,
+                    decoration: const InputDecoration(
+                      labelText: 'Giá',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(fontSize: 13),
+                    validator: (value) =>
+                    value == null || value.isEmpty ? 'Nhập giá' : null,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Phần hiển thị thông tin tài khoản hiện tại (read-only)
+  // Lấy thông tin từ biến tĩnh UserModel.currentUser được gán sau khi đăng nhập thành công.
+  Widget userInfoSection() {
+    if (UserModel.currentUser != null) {
+      return Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Row(
+            children: [
+              const Icon(Icons.person, color: Colors.blue, size: 18),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Tài khoản: ${UserModel.currentUser!.username}\n'
+                      'Email: ${UserModel.currentUser!.email}\n'
+                      'Role: ${UserModel.currentUser!.role ?? 'N/A'}',
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Widget hiển thị lựa chọn đối tượng theo _productType
-    Widget selectionWidget() {
-      if (_isLoadingOptions) {
-        return const Center(child: CircularProgressIndicator());
-      }
-      if (_productType.toLowerCase() == 'pet') {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _petSearchController,
-              decoration: const InputDecoration(
-                labelText: 'Tìm kiếm thú cưng',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<PetItem>(
-              isExpanded: true,
-              hint: const Text('Chọn thú cưng'),
-              value: _selectedPet,
-              items: _filteredPetOptions
-                  .map((pet) => DropdownMenuItem<PetItem>(
-                        value: pet,
-                        child: Text(
-                            pet.name.isNotEmpty ? pet.name : 'Không có tên'),
-                      ))
-                  .toList(),
-              onChanged: (pet) {
-                setState(() {
-                  _selectedPet = pet;
-                });
-              },
-              validator: (value) {
-                if (value == null) {
-                  return 'Vui lòng chọn thú cưng';
-                }
-                return null;
-              },
-            ),
-          ],
-        );
-      } else {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _productSearchController,
-              decoration: const InputDecoration(
-                labelText: 'Tìm kiếm sản phẩm',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<Product>(
-              isExpanded: true,
-              hint: const Text('Chọn sản phẩm'),
-              value: _selectedProduct,
-              items: _filteredProductOptions
-                  .map((product) => DropdownMenuItem<Product>(
-                        value: product,
-                        child: Text(product.name.isNotEmpty
-                            ? product.name
-                            : 'Không có tên'),
-                      ))
-                  .toList(),
-              onChanged: (product) {
-                setState(() {
-                  _selectedProduct = product;
-                });
-              },
-              validator: (value) {
-                if (value == null) {
-                  return 'Vui lòng chọn sản phẩm';
-                }
-                return null;
-              },
-            ),
-          ],
-        );
-      }
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tạo đơn hàng mới'),
+        title: const Text('Tạo đơn hàng mới', style: TextStyle(fontSize: 14)),
         backgroundColor: Colors.blue,
+      ),
+      // Cố định nút "Tạo đơn hàng" ở dưới
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: ElevatedButton(
+          onPressed: _createOrder,
+          child: _isSaving
+              ? const SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          )
+              : const Text('Tạo đơn hàng', style: TextStyle(fontSize: 13)),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -288,73 +360,32 @@ class _AdminOrderCreateState extends State<AdminOrderCreate> {
           key: _formKey,
           child: Column(
             children: [
-              // Thông tin User
-              TextFormField(
-                controller: _userIdController,
-                decoration: const InputDecoration(labelText: 'User ID'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Nhập User ID' : null,
-              ),
-              TextFormField(
-                controller: _userNameController,
-                decoration: const InputDecoration(labelText: 'Username'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Nhập Username' : null,
-              ),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Nhập Email' : null,
-              ),
-              const Divider(height: 32),
-              // Chọn loại sản phẩm
-              DropdownButtonFormField<String>(
-                value: _productType,
-                decoration: const InputDecoration(labelText: 'Loại sản phẩm'),
-                items: <String>['product', 'pet']
-                    .map((type) => DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _productType = value ?? 'product';
-                    _selectedProduct = null;
-                    _selectedPet = null;
-                  });
+              // Hiển thị thông tin tài khoản (read-only)
+              userInfoSection(),
+              // Danh sách các hàng order detail
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: orderDetailItems.length,
+                itemBuilder: (context, index) {
+                  return _buildOrderDetailItem(index, orderDetailItems[index]);
                 },
               ),
-              const SizedBox(height: 16),
-              // Widget lựa chọn đối tượng (có thanh tìm kiếm và dropdown)
-              selectionWidget(),
-              const SizedBox(height: 16),
-              // Thông tin OrderDetail khác
-              TextFormField(
-                controller: _quantityController,
-                decoration: const InputDecoration(labelText: 'Số lượng'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Nhập số lượng' : null,
-                keyboardType: TextInputType.number,
+              const SizedBox(height: 8),
+              // Nút "Thêm hàng" để thêm mới order detail item
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      orderDetailItems.add(_OrderDetailItem());
+                    });
+                  },
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Thêm hàng', style: TextStyle(fontSize: 13)),
+                ),
               ),
-              TextFormField(
-                controller: _priceController,
-                decoration: const InputDecoration(labelText: 'Giá'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Nhập giá sản phẩm' : null,
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 32),
-              _isSaving
-                  ? const CircularProgressIndicator()
-                  : SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _createOrder,
-                        child: const Text('Tạo đơn hàng'),
-                      ),
-                    ),
+              const SizedBox(height: 8),
             ],
           ),
         ),

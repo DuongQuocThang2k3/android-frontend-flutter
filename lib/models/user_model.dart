@@ -1,5 +1,3 @@
-// models/user_model.dart
-
 import 'dart:convert';
 
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -35,14 +33,37 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    // Lấy token từ JSON
+    final tokenValue = json['token'] as String? ?? '';
+    // Giải mã token nếu có để lấy thêm các thông tin (nếu chưa có trong JSON)
+    Map<String, dynamic> tokenData = {};
+    if (tokenValue.isNotEmpty) {
+      try {
+        tokenData = JwtDecoder.decode(tokenValue);
+      } catch (_) {}
+    }
     return UserModel(
-      token: json['token'] as String? ?? '',
-      id: json['id'] as String? ?? '',
-      username: json['userName'] as String? ?? '',
-      email: json['email'] as String? ?? '',
-      fullName: json['fullName'] as String? ?? '',
-      role: json['role'] as String? ?? 'User',
-      emailConfirmed: json['emailConfirmed'] as bool? ?? false,
+      token: tokenValue,
+      id: json['id'] as String? ?? json['Id'] as String? ?? '',
+      username: json['username'] as String? ??
+          json['userName'] as String? ??
+          json['UserName'] as String? ??
+          tokenData['username'] as String? ??
+          '',
+      email: json['email'] as String? ??
+          json['Email'] as String? ??
+          tokenData['email'] as String? ??
+          '',
+      fullName: json['fullName'] as String? ??
+          json['FullName'] as String? ??
+          '', // Giả sử fullName không có trong token
+      role: json['role'] as String? ??
+          json['Role'] as String? ??
+          tokenData['role'] as String? ??
+          'User',
+      emailConfirmed: json['emailConfirmed'] as bool? ??
+          json['EmailConfirmed'] as bool? ??
+          false,
       twoFactorEnabled: json['twoFactorEnabled'] as bool? ?? false,
       lockoutEnabled: json['lockoutEnabled'] as bool? ?? false,
       accessFailedCount: json['accessFailedCount'] as int? ?? 0,
@@ -64,17 +85,41 @@ class UserModel {
     };
   }
 
+  UserModel copyWith({
+    String? id,
+    String? username,
+    String? email,
+    String? fullName,
+    String? role,
+    bool? emailConfirmed,
+    bool? twoFactorEnabled,
+    bool? lockoutEnabled,
+    int? accessFailedCount,
+    String? token,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      fullName: fullName ?? this.fullName,
+      role: role ?? this.role,
+      emailConfirmed: emailConfirmed ?? this.emailConfirmed,
+      twoFactorEnabled: twoFactorEnabled ?? this.twoFactorEnabled,
+      lockoutEnabled: lockoutEnabled ?? this.lockoutEnabled,
+      accessFailedCount: accessFailedCount ?? this.accessFailedCount,
+      token: token ?? this.token,
+    );
+  }
+
   bool get isAdmin => role.toLowerCase() == 'admin';
 
   /// Lấy số điện thoại: ưu tiên token.claims.phone_number, fallback session JSON
   Future<String?> get phoneNumber async {
-    // từ token
     try {
       final claims = JwtDecoder.decode(token);
       final phone = claims['phone_number'] as String?;
       if (phone != null && phone.isNotEmpty) return phone;
     } catch (_) {}
-    // từ session
     final session = await TokenManager.getSession();
     if (session != null) {
       try {
@@ -119,9 +164,11 @@ class UserModel {
     return null;
   }
 
+  /// Gán người dùng hiện tại, lưu vào cache: token và session
   static void setCurrentUser(UserModel user) {
     currentUser = user;
     TokenManager.saveToken(user.token);
+    // Lưu thông tin user (bao gồm username, email, role, ...) dưới dạng session JSON
     TokenManager.saveSession(jsonEncode(user.toJson()));
   }
 

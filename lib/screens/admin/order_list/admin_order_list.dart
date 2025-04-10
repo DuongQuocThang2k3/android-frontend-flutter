@@ -119,7 +119,7 @@ class _AdminOrderListState extends State<AdminOrderList> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: Mã đơn hàng và trạng thái (có checkmark nếu hoàn thành)
+            // Header: Mã đơn hàng và trạng thái
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -154,7 +154,8 @@ class _AdminOrderListState extends State<AdminOrderList> {
               ],
             ),
             const Divider(),
-            _buildInfoRow(Icons.person, 'Khách hàng', order.user.fullName),
+            // Sửa: sử dụng order.user.userName thay vì fullName
+            _buildInfoRow(Icons.person, 'Khách hàng', order.user.username),
             _buildInfoRow(
                 Icons.calendar_today, 'Ngày đặt', _formatDate(order.orderDate)),
             _buildInfoRow(

@@ -88,6 +88,7 @@ class _LoginScreenState extends State<LoginScreen>
       String token = result['token'] ?? '';
       Map<String, dynamic> decodedToken = result['decodedToken'];
       UserModel user = UserModel.fromJson(decodedToken);
+      UserModel.currentUser = user;
 
       // Lưu thông tin đăng nhập: token, username, password và quyền user
       await TokenManager.saveSession(json.encode({

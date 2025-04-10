@@ -20,7 +20,6 @@ class OrderDetail {
   factory OrderDetail.fromJson(Map<String, dynamic> json) {
     return OrderDetail(
       id: json['id'] as int,
-      // Nếu không có orderId thì gán 0 (nếu đã có xử lý ở Order.fromJson thì trường này sẽ luôn có)
       orderId: json['orderId'] != null ? json['orderId'] as int : 0,
       productType: json['productType'] as String? ?? '',
       productId: json['productId'] != null ? json['productId'] as int : null,
@@ -31,15 +30,34 @@ class OrderDetail {
   }
 
   Map<String, dynamic> toJson() {
-    final data = <String, dynamic>{
+    return {
       'id': id,
       'orderId': orderId,
       'productType': productType,
       'quantity': quantity,
       'price': price,
+      'productId': productId,
+      'petId': petId,
     };
-    data['productId'] = productId;
-    data['petId'] = petId;
-    return data;
+  }
+
+  OrderDetail copyWith({
+    int? id,
+    int? orderId,
+    String? productType,
+    int? productId,
+    int? petId,
+    int? quantity,
+    double? price,
+  }) {
+    return OrderDetail(
+      id: id ?? this.id,
+      orderId: orderId ?? this.orderId,
+      productType: productType ?? this.productType,
+      productId: productId ?? this.productId,
+      petId: petId ?? this.petId,
+      quantity: quantity ?? this.quantity,
+      price: price ?? this.price,
+    );
   }
 }
